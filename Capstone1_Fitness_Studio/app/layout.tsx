@@ -2,6 +2,7 @@ import { Oswald, Roboto } from "next/font/google";
 import "./globals.css";
 import { Geist, Geist_Mono } from 'next/font/google';
 import type { Metadata } from "next";
+import { CartProvider } from "@/lib/CartContext";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -41,7 +42,9 @@ export default function RootLayout({
         className={`${oswald.variable} ${roboto.variable} ${geistSans.variable} ${geistMono.variable} w-full max-w-[1920px] 
         mx-auto bg-white`}
       >
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
