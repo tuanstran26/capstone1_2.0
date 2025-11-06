@@ -14,6 +14,11 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ChatBox from "@/components/ChatBox";
 import ClientOnly from "@/components/ClientOnly";
+import WhyChooseUs from "@/components/WhyChooseUs";
+import CTA from "@/components/CTA";
+import FAQ from "@/components/FAQ";
+import QuickContact from "@/components/QuickContact";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -30,15 +35,21 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
+        <QuickContact />
         <About />
+        <WhyChooseUs />
         <Classes />
         <Team />
         <Membership />
+        <CTA />
         <Testimonials />
+        <FAQ />
         <Blog />
         <Brands />
       </main>
       <Footer />
+
+      <ScrollToTop />
 
       {/* chỉ hiện ChatBox khi có user */}
       {user && (

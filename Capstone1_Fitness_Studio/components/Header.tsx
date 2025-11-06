@@ -83,7 +83,13 @@ const Header = ({ hideScrollNav = false }: { hideScrollNav?: boolean }) => {
 
         {/* logo */}
         <Link href='/'>
-          <Image src={'/assets/img/logo.png'} alt="logo" width={117} height={55} />
+          <Image 
+            src={'/assets/img/logo.png'} 
+            alt="logo" 
+            width={85} 
+            height={40}
+            className="transition-all duration-300" 
+          />
         </Link>
 
         {/* mobile nav */}
