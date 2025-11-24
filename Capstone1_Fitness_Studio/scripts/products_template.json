@@ -1,0 +1,790 @@
+[
+  {
+    "id": "auto_generated",
+    "name": "Men's AeroFLX Seamless Long Sleeve Tee - Dark Moss",
+    "slug": "mens-aeroflex-seamless-tee-dark-moss",
+    "description": "Premium seamless long sleeve training tee with moisture-wicking technology. Perfect for intense workouts with comfortable fit and breathable fabric.",
+    "shortDescription": "Seamless training tee with moisture-wicking fabric",
+    "brand": "ObjectId -> Brand (Gymshark)",
+    "category": "ObjectId -> Category (Clothing)",
+    "images": [
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Moss-1.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Moss - Front View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Moss-2.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Moss - Side View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Moss-3.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Moss - Back View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Moss-4.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Moss - Detail"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Moss-5.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Moss - Action Shot"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.5,
+      "count": 128
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Men's AeroFLX Seamless Long Sleeve Tee - Black Marl",
+    "slug": "mens-aeroflex-seamless-tee-black-marl",
+    "description": "Classic black marl seamless training tee with superior stretch and comfort. Ideal for all types of training sessions.",
+    "shortDescription": "Classic seamless tee in black marl finish",
+    "brand": "ObjectId -> Brand (Gymshark)",
+    "category": "ObjectId -> Category (Clothing)",
+    "images": [
+      {
+        "url": "/products/M-Model-Mens-AeroFLX-Seamless-Long-Sleeve-Tee-Black-Marl-1.webp",
+        "alt": "Men's AeroFLX Seamless Tee Black Marl - Front View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX-Seamless-Long-Sleeve-Tee-Black-Marl-2.webp",
+        "alt": "Men's AeroFLX Seamless Tee Black Marl - Side View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX-Seamless-Long-Sleeve-Tee-Black-Marl-3.webp",
+        "alt": "Men's AeroFLX Seamless Tee Black Marl - Back View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX-Seamless-Long-Sleeve-Tee-Black-Marl-Fabric-Texture-1.webp",
+        "alt": "Men's AeroFLX Seamless Tee Black Marl - Fabric Detail"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.7,
+      "count": 156
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Men's AeroFLX Seamless Long Sleeve Tee - Dark Storm",
+    "slug": "mens-aeroflex-seamless-tee-dark-storm",
+    "description": "Stylish dark storm colorway in premium seamless construction. Features advanced moisture management for peak performance.",
+    "shortDescription": "Premium seamless tee in dark storm color",
+    "brand": "ObjectId -> Brand (Gymshark)",
+    "category": "ObjectId -> Category (Clothing)",
+    "images": [
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Storm-1.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Storm - Front View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Storm-2.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Storm - Side View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Storm-3.webp",
+        "alt": "Men's AeroFLX Seamless Tee Dark Storm - Back View"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Storm-4.jpg",
+        "alt": "Men's AeroFLX Seamless Tee Dark Storm - Detail"
+      },
+      {
+        "url": "/products/M-Model-Mens-AeroFLX_-Seamless-Long-Sleeve-Tee-Dark-Storm-5.jpg",
+        "alt": "Men's AeroFLX Seamless Tee Dark Storm - Action Shot"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.6,
+      "count": 142
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Power Oversized Tee - Tradewinds Washed",
+    "slug": "power-oversized-tee-tradewinds-washed",
+    "description": "Relaxed oversized fit training tee with washed finish. Perfect for casual wear and light training sessions.",
+    "shortDescription": "Oversized training tee with washed finish",
+    "brand": "ObjectId -> Brand (Gymshark)",
+    "category": "ObjectId -> Category (Clothing)",
+    "images": [
+      {
+        "url": "/products/L-Model-Power-Oversized-Tee-Tradewinds-Washed-1.webp",
+        "alt": "Power Oversized Tee Tradewinds - Front View"
+      },
+      {
+        "url": "/products/L-Model-Power-Oversized-Tee-Tradewinds-Washed-2.webp",
+        "alt": "Power Oversized Tee Tradewinds - Side View"
+      },
+      {
+        "url": "/products/L-Model-Power-Oversized-Tee-Tradewinds-Washed-3.webp",
+        "alt": "Power Oversized Tee Tradewinds - Back View"
+      },
+      {
+        "url": "/products/L-Model-Power-Oversized-Tee-Tradewinds-Washed-4.webp",
+        "alt": "Power Oversized Tee Tradewinds - Detail"
+      },
+      {
+        "url": "/products/L-Model-Power-Oversized-Tee-Tradewinds-Washed-5.webp",
+        "alt": "Power Oversized Tee Tradewinds - Lifestyle"
+      },
+      {
+        "url": "/products/L-Model-Power-Oversized-Tee-Tradewinds-Washed-6.webp",
+        "alt": "Power Oversized Tee Tradewinds - Full Body"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.4,
+      "count": 98
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Men's AeroFLX Seamless Half-Zip Long Sleeve Tee - Black",
+    "slug": "mens-aeroflex-seamless-half-zip-tee-black",
+    "description": "Versatile half-zip training tee with seamless construction. Features breathable panels and adjustable ventilation.",
+    "shortDescription": "Half-zip seamless tee with adjustable ventilation",
+    "brand": "ObjectId -> Brand (Gymshark)",
+    "category": "ObjectId -> Category (Clothing)",
+    "images": [
+      {
+        "url": "/products/L-Model-Mens-AeroFLX-Seamless-Half-Zip-Long-Sleeve-Tee-Black-1.webp",
+        "alt": "Men's AeroFLX Half-Zip Tee Black - Front View"
+      },
+      {
+        "url": "/products/L-Model-Mens-AeroFLX-Seamless-Half-Zip-Long-Sleeve-Tee-Black-2.webp",
+        "alt": "Men's AeroFLX Half-Zip Tee Black - Side View"
+      },
+      {
+        "url": "/products/L-Model-Mens-AeroFLX-Seamless-Half-Zip-Long-Sleeve-Tee-Black-3.webp",
+        "alt": "Men's AeroFLX Half-Zip Tee Black - Back View"
+      },
+      {
+        "url": "/products/L-Model-Mens-AeroFLX-Seamless-Half-Zip-Long-Sleeve-Tee-Black-4.webp",
+        "alt": "Men's AeroFLX Half-Zip Tee Black - Detail"
+      },
+      {
+        "url": "/products/L-Model-Mens-AeroFLX-Seamless-Half-Zip-Long-Sleeve-Tee-Black-5.webp",
+        "alt": "Men's AeroFLX Half-Zip Tee Black - Action Shot"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.8,
+      "count": 215
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Adidas Dropset 3 Training Shoes - Beige",
+    "slug": "adidas-dropset-3-training-shoes-beige",
+    "description": "Premium training shoes designed for versatile workouts. Features responsive cushioning and durable construction.",
+    "shortDescription": "Versatile training shoes with responsive cushioning",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Footwear)",
+    "images": [
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Beige_JR1675_HM1.avif",
+        "alt": "Dropset 3 Training Shoes Beige - Main View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Beige_JR1675_HM3_hover.avif",
+        "alt": "Dropset 3 Training Shoes Beige - Side View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Beige_JR1675_HM4.avif",
+        "alt": "Dropset 3 Training Shoes Beige - Detail View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.5,
+      "count": 89
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Adidas Rapidmove ADV 2 HIIT Training Shoes - White",
+    "slug": "adidas-rapidmove-adv-2-hiit-shoes-white",
+    "description": "High-intensity training shoes with advanced support technology. Perfect for HIIT and dynamic movements.",
+    "shortDescription": "HIIT training shoes with advanced support",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Footwear)",
+    "images": [
+      {
+        "url": "/products/Rapidmove_ADV_2_HIIT_training_shoes_White_JI4196_HM1.avif",
+        "alt": "Rapidmove ADV 2 HIIT White - Main View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_HIIT_training_shoes_White_JI4196_HM3_hover.avif",
+        "alt": "Rapidmove ADV 2 HIIT White - Side View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_HIIT_training_shoes_White_JI4196_HM4.avif",
+        "alt": "Rapidmove ADV 2 HIIT White - Detail View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.7,
+      "count": 134
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Adidas Dropset 3 Training Shoes - Black",
+    "slug": "adidas-dropset-3-training-shoes-black",
+    "description": "Classic black training shoes with superior stability. Ideal for strength training and cross-training workouts.",
+    "shortDescription": "Stable training shoes for strength workouts",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Footwear)",
+    "images": [
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Black_IH8292_HM1.avif",
+        "alt": "Dropset 3 Training Shoes Black - Main View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Black_IH8292_HM3_hover.avif",
+        "alt": "Dropset 3 Training Shoes Black - Side View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Black_IH8292_HM4.avif",
+        "alt": "Dropset 3 Training Shoes Black - Detail View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.6,
+      "count": 167
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Adidas Dropset 3 Training Shoes - White",
+    "slug": "adidas-dropset-3-training-shoes-white",
+    "description": "Clean white training shoes with exceptional comfort. Designed for all-day wear and intense training sessions.",
+    "shortDescription": "Comfortable training shoes in classic white",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Footwear)",
+    "images": [
+      {
+        "url": "/products/Dropset_3_Training_Shoes_White_ID8633_HM1.avif",
+        "alt": "Dropset 3 Training Shoes White - Main View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_White_ID8633_HM3_hover.avif",
+        "alt": "Dropset 3 Training Shoes White - Side View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_White_ID8633_HM4.avif",
+        "alt": "Dropset 3 Training Shoes White - Detail View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.5,
+      "count": 112
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Designed for Training Legacy Shorts - Purple",
+    "slug": "training-legacy-shorts-purple",
+    "description": "Performance training shorts with advanced stretch fabric. Features secure pockets and moisture-wicking technology.",
+    "shortDescription": "Stretch training shorts with secure pockets",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Clothing)",
+    "images": [
+      {
+        "url": "/products/Designed-for-Training_Legacy_Shorts_Purple_KA5287_21_model.avif",
+        "alt": "Training Legacy Shorts Purple - Front View"
+      },
+      {
+        "url": "/products/Designed-for-Training_Legacy_Shorts_Purple_KA5287_23_hover_model.avif",
+        "alt": "Training Legacy Shorts Purple - Side View"
+      },
+      {
+        "url": "/products/Designed-for-Training_Legacy_Shorts_Purple_KA5287_25_model.avif",
+        "alt": "Training Legacy Shorts Purple - Back View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.4,
+      "count": 78
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Designed for Training Legacy Shorts - Black",
+    "slug": "training-legacy-shorts-black",
+    "description": "Classic black training shorts with versatile design. Perfect for all types of workouts and training activities.",
+    "shortDescription": "Versatile black training shorts",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Clothing)",
+    "images": [
+      {
+        "url": "/products/Designed-for-Training_Legacy_Shorts_Black_KA5283_21_model.avif",
+        "alt": "Training Legacy Shorts Black - Front View"
+      },
+      {
+        "url": "/products/Designed-for-Training_Legacy_Shorts_Black_KA5283_23_hover_model.avif",
+        "alt": "Training Legacy Shorts Black - Side View"
+      },
+      {
+        "url": "/products/Designed-for-Training_Legacy_Shorts_Black_KA5283_25_model_hover.avif",
+        "alt": "Training Legacy Shorts Black - Back View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.6,
+      "count": 145
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Adidas Rapidmove ADV 2 HIIT Training Shoes - Green",
+    "slug": "adidas-rapidmove-adv-2-hiit-shoes-green",
+    "description": "Bold green HIIT training shoes with exceptional grip. Engineered for explosive movements and quick transitions.",
+    "shortDescription": "High-performance HIIT shoes in vibrant green",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Footwear)",
+    "images": [
+      {
+        "url": "/products/Rapidmove_ADV_2_HIIT_training_shoes_Green_IH2707_HM1.avif",
+        "alt": "Rapidmove ADV 2 HIIT Green - Main View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_HIIT_training_shoes_Green_IH2707_HM3_hover.avif",
+        "alt": "Rapidmove ADV 2 HIIT Green - Side View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_HIIT_training_shoes_Green_IH2707_HM4.avif",
+        "alt": "Rapidmove ADV 2 HIIT Green - Detail View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_HIIT_training_shoes_Green_IH2707_HM5.avif",
+        "alt": "Rapidmove ADV 2 HIIT Green - Back View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.7,
+      "count": 103
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Adidas Rapidmove ADV 2 Training Shoes - Green",
+    "slug": "adidas-rapidmove-adv-2-training-shoes-green",
+    "description": "Versatile green training shoes for all workout types. Combines comfort with performance-driven design.",
+    "shortDescription": "All-purpose training shoes in green colorway",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Footwear)",
+    "images": [
+      {
+        "url": "/products/Rapidmove_ADV_2_Training_Shoes_Green_JI3904_HM1.avif",
+        "alt": "Rapidmove ADV 2 Training Green - Main View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_Training_Shoes_Green_JI3904_HM3_hover.avif",
+        "alt": "Rapidmove ADV 2 Training Green - Side View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_Training_Shoes_Green_JI3904_HM4.avif",
+        "alt": "Rapidmove ADV 2 Training Green - Detail View"
+      },
+      {
+        "url": "/products/Rapidmove_ADV_2_Training_Shoes_Green_JI3904_HM5.avif",
+        "alt": "Rapidmove ADV 2 Training Green - Back View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.5,
+      "count": 91
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Adidas Dropset 3 Training Shoes - Beige (Variant 2)",
+    "slug": "adidas-dropset-3-training-shoes-beige-v2",
+    "description": "Alternative beige colorway of the popular Dropset 3. Features the same great performance with updated styling.",
+    "shortDescription": "Updated beige training shoes variant",
+    "brand": "ObjectId -> Brand (Adidas)",
+    "category": "ObjectId -> Category (Footwear)",
+    "images": [
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Beige_JI3901_HM1.avif",
+        "alt": "Dropset 3 Training Shoes Beige V2 - Main View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Beige_JI3901_HM3_hover.avif",
+        "alt": "Dropset 3 Training Shoes Beige V2 - Side View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Beige_JI3901_HM4.avif",
+        "alt": "Dropset 3 Training Shoes Beige V2 - Detail View"
+      },
+      {
+        "url": "/products/Dropset_3_Training_Shoes_Beige_JI3901_HM5.avif",
+        "alt": "Dropset 3 Training Shoes Beige V2 - Back View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.5,
+      "count": 67
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym MyRun Treadmill",
+    "slug": "technogym-myrun-treadmill",
+    "description": "Premium smart treadmill with immersive training experience. Compatible with fitness apps and perfect for home gym. Features shock absorption system and speeds up to 20 km/h.",
+    "shortDescription": "Smart treadmill with app connectivity",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/technogym_myrun_gallery_001.jpg",
+        "alt": "Technogym MyRun Treadmill - Main View"
+      },
+      {
+        "url": "/products/technogym_myrun_gallery_002.jpg",
+        "alt": "Technogym MyRun Treadmill - Side View"
+      },
+      {
+        "url": "/products/myrun-gallery-pdp-3.jpg",
+        "alt": "Technogym MyRun Treadmill - Detail View"
+      },
+      {
+        "url": "/products/myrun-gallery-pdp-4.jpg",
+        "alt": "Technogym MyRun Treadmill - In Use"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.8,
+      "count": 245
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym Bench",
+    "slug": "technogym-bench",
+    "description": "Versatile training bench for strength exercises. Adjustable positions and premium construction with multiple adjustment positions.",
+    "shortDescription": "Adjustable training bench for strength exercises",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/technogym-bench-pdp-gallery-new-1.jpg",
+        "alt": "Technogym Bench - Main View"
+      },
+      {
+        "url": "/products/technogym_bench_gallery_001-(2).jpg",
+        "alt": "Technogym Bench - Side View"
+      },
+      {
+        "url": "/products/technogym-bench-gallery-V3-05.jpg",
+        "alt": "Technogym Bench - Adjusted Position"
+      },
+      {
+        "url": "/products/bench-hero-gallery-6.jpg",
+        "alt": "Technogym Bench - In Use"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.7,
+      "count": 189
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym Bike",
+    "slug": "technogym-bike",
+    "description": "Indoor cycling bike with advanced features. Perfect for cardio training and cycling workouts with magnetic resistance system.",
+    "shortDescription": "Indoor cycling bike with digital display",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/technogym_bike_gallery_001-b.jpg",
+        "alt": "Technogym Bike - Main View"
+      },
+      {
+        "url": "/products/technogym_bike_gallery_002b.jpg",
+        "alt": "Technogym Bike - Side View"
+      },
+      {
+        "url": "/products/technogym_bike_gallery_003.jpg",
+        "alt": "Technogym Bike - Console Detail"
+      },
+      {
+        "url": "/products/technogym_bike_gallery_004_c.jpg",
+        "alt": "Technogym Bike - Full View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.6,
+      "count": 167
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym Ride",
+    "slug": "technogym-ride",
+    "description": "Professional indoor cycling bike with immersive training experience. Connect to cycling apps with built-in power meter.",
+    "shortDescription": "Professional cycling bike with power meter",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/technogym_ride_gallery_001.jpg",
+        "alt": "Technogym Ride - Main View"
+      },
+      {
+        "url": "/products/technogym_ride_gallery_002.jpg",
+        "alt": "Technogym Ride - Side View"
+      },
+      {
+        "url": "/products/technogym_ride_gallery_003.jpg",
+        "alt": "Technogym Ride - Detail View"
+      },
+      {
+        "url": "/products/technogym_ride_gallery_004_b.jpg",
+        "alt": "Technogym Ride - Full Setup"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.9,
+      "count": 203
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym Unica Multi-Gym",
+    "slug": "technogym-unica-multi-gym",
+    "description": "Complete home gym station with multiple exercise options. All-in-one strength training solution with over 25 exercises.",
+    "shortDescription": "All-in-one home gym station",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/unica_gallery_002.jpg",
+        "alt": "Technogym Unica - Main View"
+      },
+      {
+        "url": "/products/unica_gallery_003.jpg",
+        "alt": "Technogym Unica - Side View"
+      },
+      {
+        "url": "/products/unica_gallery_004.jpg",
+        "alt": "Technogym Unica - Exercise Demo"
+      },
+      {
+        "url": "/products/unica_gallery_005.jpg",
+        "alt": "Technogym Unica - Full Setup"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.8,
+      "count": 156
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym Elliptical",
+    "slug": "technogym-elliptical",
+    "description": "Premium elliptical trainer for low-impact cardio. Smooth motion and interactive features with 25 resistance levels.",
+    "shortDescription": "Low-impact elliptical trainer",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/technogym_elliptical_gallery_001.jpg",
+        "alt": "Technogym Elliptical - Main View"
+      },
+      {
+        "url": "/products/technogym_elliptical_gallery_002.jpg",
+        "alt": "Technogym Elliptical - Side View"
+      },
+      {
+        "url": "/products/technogym_elliptical_gallery_003.jpg",
+        "alt": "Technogym Elliptical - In Use"
+      },
+      {
+        "url": "/products/elliptical_myline.jpg",
+        "alt": "Technogym Elliptical - MyLine Model"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.7,
+      "count": 178
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym SkillRow Rower",
+    "slug": "technogym-skillrow-rower",
+    "description": "Professional rowing machine with power measurement. Perfect for full-body cardio training with interactive programs.",
+    "shortDescription": "Professional rowing machine with power meter",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/skillrow-giallo-product-carousel-hero_b_light.jpg",
+        "alt": "Technogym SkillRow - Hero View"
+      },
+      {
+        "url": "/products/skillrow-gallery-2-light.jpg",
+        "alt": "Technogym SkillRow - Side View"
+      },
+      {
+        "url": "/products/skillrow-giallo-product-carousel-3_light.jpg",
+        "alt": "Technogym SkillRow - Detail View"
+      },
+      {
+        "url": "/products/skillrow-giallo-product-carousel-5_light.jpg",
+        "alt": "Technogym SkillRow - In Use"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.8,
+      "count": 134
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Technogym Recline Personal",
+    "slug": "technogym-recline-personal",
+    "description": "Recumbent exercise bike with ergonomic design. Comfortable seating for longer cardio sessions with adjustable positions.",
+    "shortDescription": "Ergonomic recumbent exercise bike",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/recline_personal_gallery_001 (1).jpg",
+        "alt": "Technogym Recline - Main View"
+      },
+      {
+        "url": "/products/recline_personal_gallery_002 (1).jpg",
+        "alt": "Technogym Recline - Side View"
+      },
+      {
+        "url": "/products/recline_personal_gallery_003b.jpg",
+        "alt": "Technogym Recline - Console Detail"
+      },
+      {
+        "url": "/products/recline_personal_gallery_004 (1).jpg",
+        "alt": "Technogym Recline - Full View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.6,
+      "count": 112
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "GHD Bench - Glute Ham Developer",
+    "slug": "ghd-bench-glute-ham-developer",
+    "description": "Professional GHD bench for posterior chain training. Essential equipment for functional fitness with adjustable foot platform.",
+    "shortDescription": "Professional GHD bench for posterior training",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/ghd_pg12_related.jpg",
+        "alt": "GHD Bench - Main View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.7,
+      "count": 87
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  },
+  {
+    "id": "auto_generated",
+    "name": "Olympic Incline Bench",
+    "slug": "olympic-incline-bench",
+    "description": "Heavy-duty Olympic incline bench for chest and shoulder exercises. Professional strength training equipment with safety spotter stands.",
+    "shortDescription": "Heavy-duty Olympic incline bench",
+    "brand": "ObjectId -> Brand (Technogym)",
+    "category": "ObjectId -> Category (Equipment)",
+    "images": [
+      {
+        "url": "/products/PG01_purestrength_olympicinclinebench_related_01_5.jpg",
+        "alt": "Olympic Incline Bench - Main View"
+      }
+    ],
+    "status": "active",
+    "rating": {
+      "avg": 4.8,
+      "count": 145
+    },
+    "createdAt": "2025-11-24T00:00:00.000Z",
+    "updatedAt": "2025-11-24T00:00:00.000Z"
+  }
+]

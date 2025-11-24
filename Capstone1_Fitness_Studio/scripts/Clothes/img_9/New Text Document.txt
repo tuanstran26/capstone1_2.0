@@ -1,0 +1,27 @@
+Accelerate Sports Bra
+Running is a sport of obsession. The Just Keep Running collection was designed to match this obsession.
+
+Designed for a totally customisable fit, the Black Accelerate Bra brings support and comfort for your toughest pursuits. Stablising mesh, 3 hook bra clasp and multiple layers of our compressive Rep Fabric minimise all distractions so you can just keep running.
+------------------------------------
+{
+  "id": "auto_generated",
+  "name": "Accelerate Sports Bra",
+  "slug": "accelerate-sports-bra-black",
+  "description": "Engineered for runners who demand performance, the Black Accelerate Sports Bra is part of the Just Keep Running collection — built for those obsessed with progress. Designed for a fully customisable fit, it features stabilising mesh, a secure 3-hook clasp, and multiple layers of our compressive Rep Fabric for high-impact support. These elements work together to minimise bounce and friction, allowing you to stay focused on every stride. Whether you're pushing through intervals, long-distance sessions, or race-day prep, the Accelerate Bra delivers dependable comfort and stability.",
+  "shortDescription": "High-support running bra with stabilising mesh, 3-hook clasp, and compressive multi-layer Rep Fabric.",
+  "brand": "ObjectId_here",
+  "category": "ObjectId_here",
+  "images": [
+    {
+      "url": "https://example.com/images/accelerate-sports-bra-black.webp",
+      "alt": "Accelerate Sports Bra - Black"
+    }
+  ],
+  "status": "active",
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+  "createdAt": "2025-11-22T12:00:00Z",
+  "updatedAt": "2025-11-22T12:00:00Z"
+}

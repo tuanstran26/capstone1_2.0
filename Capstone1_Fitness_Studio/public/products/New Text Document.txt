@@ -1,0 +1,24 @@
+Velocity Sports Bra Designed for performance and style, the Dark Moss Velocity Sports Bra has a wide, supportive underband and open, flattering back detail for an effortlessly cool, distraction free workout
+------------------
+{
+  "id": "auto_generated",
+  "name": "Velocity Sports Bra",
+  "slug": "velocity-sports-bra-dark-moss",
+  "description": "Designed for both performance and style, the Dark Moss Velocity Sports Bra delivers a secure, distraction-free workout experience. Featuring a wide, supportive underband and an open, sculpted back design, it provides reliable stability while enhancing airflow and movement. Its clean, flattering silhouette makes it suitable for training sessions, studio workouts, and everyday activewear.",
+  "shortDescription": "Supportive wide-underband sports bra with an open, flattering back for a distraction-free workout.",
+  "brand": "ObjectId_here",
+  "category": "ObjectId_here",
+  "images": [
+    {
+      "url": "https://example.com/images/velocity-sports-bra-dark-moss.webp",
+      "alt": "Velocity Sports Bra - Dark Moss"
+    }
+  ],
+  "status": "active",
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+  "createdAt": "2025-11-22T12:00:00Z",
+  "updatedAt": "2025-11-22T12:00:00Z"
+}

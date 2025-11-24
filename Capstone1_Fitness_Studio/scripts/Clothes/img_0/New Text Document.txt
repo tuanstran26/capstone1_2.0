@@ -1,0 +1,40 @@
+AeroFLX+ Seamless Long Sleeve Tee
+
+AeroFLX+ is for when you plan to sweat a lot.
+
+The Mens Dark Moss AeroFLX+ Seamless Long Sleeve Tee features body-mapped ventilation that provides air flow and breathability where you need it most. Backed by over 18 months of research and development we analysed athletes body temperatures through a range of workouts and built the fit, feel and function of the fabric based on their needs.
+
+A cutting edge performance needs cutting edge fabric technology, which is why we introduced Ionic+ silver yarns to keep you fresher for longer.
+
+Ionic+™ Technology
+Lightweight moisture wicking poly yarns are bonded with positively charged silver ions (that’s where the ‘+’ comes from) which neutralise body odour meaning you can go longer between washes.
+
+
+------------------------------------------------------------
+{
+  "id": "auto_generated",
+  "name": "AeroFLX+ Seamless Long Sleeve Tee – Dark Moss",
+  "slug": "aeroflx-plus-seamless-long-sleeve-tee-dark-moss",
+  "description": "The AeroFLX+ Seamless Long Sleeve Tee is engineered for high-sweat training sessions. Featuring body-mapped ventilation zones to deliver enhanced airflow and breathability exactly where you need it, this tee was built after 18 months of research analysing athlete temperature patterns during various workouts. The lightweight poly yarns are reinforced with Ionic+™ silver technology, which uses positively charged silver ions to neutralise odour and help you stay fresher for longer—allowing more wear between washes.",
+  "shortDescription": "Premium seamless long sleeve tee with AeroFLX+ ventilation and Ionic+™ odour-neutralising technology.",
+  
+  "brand": "ObjectId('your_brand_id')",
+  "category": "ObjectId('your_category_id')",
+
+  "images": [
+    {
+      "url": "/images/products/M-Model-Mens-AeroFLX_Seamless-Long-Sleeve-Tee-Dark-Moss-2.webp",
+      "alt": "Mens AeroFLX+ Seamless Long Sleeve Tee – Dark Moss"
+    }
+  ],
+
+  "status": "active",
+
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z"
+}

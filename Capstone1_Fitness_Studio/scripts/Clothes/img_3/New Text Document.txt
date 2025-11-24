@@ -1,0 +1,32 @@
+Power Oversized Tee
+
+The Tradewinds Washed Power Oversize Tee is designed for a relaxed training fit. Crafted from our heavyweight seamless fabric with a garment wash to provide an silky soft handfeel.
+
+---------------
+{
+  "id": "auto_generated",
+  "name": "Power Oversized Tee – Tradewinds Washed",
+  "slug": "power-oversized-tee-tradewinds-washed",
+  "description": "The Tradewinds Washed Power Oversized Tee is designed for a relaxed and versatile training fit. Crafted from our heavyweight seamless fabric, it delivers a premium structure while maintaining freedom of movement. Each piece undergoes a garment wash process to achieve a silky soft handfeel and a unique washed finish. This tee is built for comfort, durability, and effortless style—making it suitable for both training and everyday wear.",
+  "shortDescription": "Heavyweight oversized training tee with a washed finish and ultra-soft handfeel.",
+  
+  "brand": "ObjectId('your_brand_id')",
+  "category": "ObjectId('your_category_id')",
+
+  "images": [
+    {
+      "url": "/images/products/M-Model-Mens-Power-Oversized-Tee-Tradewinds-Washed.webp",
+      "alt": "Mens Power Oversized Tee – Tradewinds Washed"
+    }
+  ],
+
+  "status": "active",
+
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z"
+}

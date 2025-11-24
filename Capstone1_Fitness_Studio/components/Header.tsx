@@ -84,7 +84,7 @@ const Header = ({ hideScrollNav = false }: { hideScrollNav?: boolean }) => {
         {/* logo */}
         <Link href='/'>
           <Image 
-            src={'/assets/img/logo.png'} 
+            src='/Logo.png'
             alt="logo" 
             width={85} 
             height={40}

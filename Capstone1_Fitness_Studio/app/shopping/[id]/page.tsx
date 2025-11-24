@@ -6,7 +6,7 @@ import { FiShoppingCart, FiCheck, FiArrowLeft, FiTruck, FiShield, FiRefreshCw, F
 import { useCart } from '@/lib/CartContext';
 import ImageGallery from '@/components/shopping/ImageGallery';
 import { Product } from '@/components/shopping/ProductCard';
-import { exerciseProducts } from '@/lib/productsData';
+import sportsProducts from '@/lib/productsData';
 import Link from 'next/link';
 
 export default function ProductDetailPage() {
@@ -19,7 +19,7 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState<'description' | 'features' | 'specifications'>('description');
 
   useEffect(() => {
-    const foundProduct = exerciseProducts.find((p) => p.id === params.id);
+    const foundProduct = sportsProducts.find((p: Product) => p.id === params.id);
     if (foundProduct) {
       console.log('Found product:', foundProduct.name);
       console.log('Product images:', foundProduct.images);

@@ -1,0 +1,26 @@
+
+
+Galvanise Sports Bra 2.0 Designed for the perfect balance of style and performance, the Black Galvanise Sports Bra 2.0 features our compressive REP fabric in a trendy asymmetric shape
+-----------------------
+{
+  "id": "auto_generated",
+  "name": "Galvanise Sports Bra 2.0",
+  "slug": "galvanise-sports-bra-2-0-black",
+  "description": "The Black Galvanise Sports Bra 2.0 is designed to deliver the ideal blend of style and performance. Crafted from our compressive REP fabric, this upgraded version features a modern asymmetric silhouette that enhances both comfort and movement. The high-support structure helps stabilise the bust during training, while the soft yet firm fabric provides a secure, locked-in feel.\n\nPerfect for gym sessions, conditioning work, or everyday activewear, the Galvanise 2.0 maintains breathability and durability without sacrificing aesthetics.",
+  "shortDescription": "Compressive asymmetric sports bra designed for style, support, and high-performance training.",
+  "brand": "ObjectId_here",
+  "category": "ObjectId_here",
+  "images": [
+    {
+      "url": "https://example.com/images/galvanise-sports-bra-black.webp",
+      "alt": "Galvanise Sports Bra 2.0 - Black"
+    }
+  ],
+  "status": "active",
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+  "createdAt": "2025-11-22T12:00:00Z",
+  "updatedAt": "2025-11-22T12:00:00Z"
+}
