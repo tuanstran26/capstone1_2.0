@@ -135,6 +135,3 @@ coverage.xml
 
 # PyCharm
 .idea/
-
-# Custom - ignore trained models
-models/
