@@ -93,6 +93,17 @@ router.patch("/memberships/:id/status", ensureAuthenticated, isAdmin, async (req
 });
 
 
+
+// Lấy toàn bộ user trừ admin
+router.get("/all-users", ensureAuthenticated, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const users = await User.find({ role: { $nin: "admin" } });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching users", error: err });
+  }
+});
+
 router.get(
   "/memberships/:id",
   ensureAuthenticated,
@@ -114,6 +125,9 @@ router.get(
     }
   }
 );
+
+
+
 
 
 export default router;

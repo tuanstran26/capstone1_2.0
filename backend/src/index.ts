@@ -7,6 +7,9 @@ import authRoutes from "./routes/auth";
 import MongoStore from "connect-mongo";
 import membershipRoutes from "./routes/membershipRouter";
 import adminRoutes from "./routes/adminRouter";
+import userRoutes from "./routes/userRouter";
+import ptRouter from "./routes/ptRouter";
+import scheduleRouter from "./routes/scheduleRouter";
 import cors from "cors"; 
 
 dotenv.config();
@@ -51,6 +54,9 @@ app.use(passport.session());
 app.use("/auth", authRoutes);
 app.use("/mb", membershipRoutes);
 app.use("/admin", adminRoutes);
+app.use("/user", userRoutes);
+app.use("/pt", ptRouter);
+app.use("/schedule", scheduleRouter);
 
 // DB connect
 mongoose

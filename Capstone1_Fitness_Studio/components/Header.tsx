@@ -128,7 +128,7 @@ const Header = () => {
                     user.role === "admin"
                       ? "/admindashboard"
                       : user.role === "pt"
-                        ? "/dashboard/trainer"
+                        ? "/trainerdashboard"
                         : "/dashboard"
                   }
                 >

@@ -101,7 +101,7 @@ router.post("/create-pt", isAdmin, async (req: Request, res: Response) => {
 
 router.get("/pts", async (req: Request, res: Response) => {
   try {
-    const pts = await User.find({ role: "pt" }).select("-password"); 
+    const pts = await User.find({ role: "pt" }).select("-password");
 
     res.json(pts);
   } catch (err) {
