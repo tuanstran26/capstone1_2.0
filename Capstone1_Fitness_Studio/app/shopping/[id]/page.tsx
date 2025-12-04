@@ -5,8 +5,11 @@ import { motion } from 'framer-motion';
 import { FiShoppingCart, FiCheck, FiArrowLeft, FiTruck, FiShield, FiRefreshCw, FiStar } from 'react-icons/fi';
 import { useCart } from '@/lib/CartContext';
 import ImageGallery from '@/components/shopping/ImageGallery';
+import ProductReviews from '@/components/shopping/ProductReviews';
 import { Product } from '@/components/shopping/ProductCard';
 import sportsProducts from '@/lib/productsData';
+import { getProductReviews } from '@/lib/reviewsData';
+import { Review } from '@/components/shopping/ProductReviews';
 import Link from 'next/link';
 
 export default function ProductDetailPage() {
@@ -17,6 +20,11 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'features' | 'specifications'>('description');
+  const [productReviewData, setProductReviewData] = useState<{ reviews: Review[]; averageRating: number; totalReviews: number }>({ 
+    reviews: [], 
+    averageRating: 0, 
+    totalReviews: 0 
+  });
 
   useEffect(() => {
     const foundProduct = sportsProducts.find((p: Product) => p.id === params.id);
@@ -25,6 +33,7 @@ export default function ProductDetailPage() {
       console.log('Product images:', foundProduct.images);
       console.log('Product image (fallback):', foundProduct.image);
       setProduct(foundProduct);
+      setProductReviewData(getProductReviews(foundProduct.id));
     } else {
       router.push('/shopping');
     }
@@ -95,19 +104,30 @@ export default function ProductDetailPage() {
             </h1>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
+              <button 
+                onClick={() => {
+                  const reviewsSection = document.getElementById('reviews-section');
+                  reviewsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className="flex items-center gap-1 cursor-pointer hover:text-accent transition-colors"
+              >
                 {[...Array(5)].map((_, i) => (
                   <FiStar
                     key={i}
                     className={`w-5 h-5 ${
-                      i < product.rating
+                      i < Math.round(productReviewData.averageRating)
                         ? 'text-yellow-400 fill-yellow-400'
                         : 'text-gray-300'
                     }`}
                   />
                 ))}
-              </div>
-              <span className="text-gray-600">({product.rating}.0)</span>
+              </button>
+              <span className="text-gray-600 hover:text-accent cursor-pointer" onClick={() => {
+                const reviewsSection = document.getElementById('reviews-section');
+                reviewsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}>
+                ({productReviewData.totalReviews} {productReviewData.totalReviews === 1 ? 'review' : 'reviews'})
+              </span>
               {!product.inStock && (
                 <span className="text-red-600 font-semibold">Out of Stock</span>
               )}
@@ -287,6 +307,22 @@ export default function ProductDetailPage() {
               </motion.div>
             )}
           </div>
+        </motion.div>
+
+        {/* Product Reviews Section */}
+        <motion.div
+          id="reviews-section"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-12"
+        >
+          <ProductReviews
+            productId={product.id}
+            reviews={productReviewData.reviews}
+            averageRating={productReviewData.averageRating}
+            totalReviews={productReviewData.totalReviews}
+          />
         </motion.div>
       </div>
     </div>

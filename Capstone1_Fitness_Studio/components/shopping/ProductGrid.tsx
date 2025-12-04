@@ -33,7 +33,7 @@ const ProductGrid = ({ products, viewMode = 'grid' }: ProductGridProps) => {
       >
         {products.map((product, index) => (
           <motion.div key={product.id} variants={itemVariants}>
-            <ProductCard product={product} index={index} viewMode="list" />
+            <ProductCard product={product} index={index} viewMode="list" priority={index < 4} />
           </motion.div>
         ))}
       </motion.div>
@@ -49,7 +49,7 @@ const ProductGrid = ({ products, viewMode = 'grid' }: ProductGridProps) => {
     >
       {products.map((product, index) => (
         <motion.div key={product.id} variants={itemVariants}>
-          <ProductCard product={product} index={index} viewMode="grid" />
+          <ProductCard product={product} index={index} viewMode="grid" priority={index < 8} />
         </motion.div>
       ))}
     </motion.div>

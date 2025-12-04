@@ -25,9 +25,10 @@ interface ProductCardProps {
   product: Product;
   index: number;
   viewMode?: 'grid' | 'list';
+  priority?: boolean;
 }
 
-const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) => {
+const ProductCard = ({ product, index, viewMode = 'grid', priority = false }: ProductCardProps) => {
   const { addToCart, isInCart } = useCart();
   const [justAdded, setJustAdded] = useState(false);
   const inCart = isInCart(product.id);
@@ -57,11 +58,15 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
           <Link href={`/shopping/${product.id}`} className="md:w-1/3">
             <div className="relative h-64 md:h-full overflow-hidden bg-white cursor-pointer flex items-center justify-center p-6">
               <Image
-                src={product.image.replace('w=500&h=500', 'w=600&h=600&q=85')}
+                src={product.image}
                 alt={product.name}
                 fill
                 className="object-contain group-hover:scale-110 transition-transform duration-500"
-                unoptimized
+                priority={priority}
+                loading={priority ? undefined : 'lazy'}
+                quality={75}
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                 sizes="(max-width: 768px) 100vw, 33vw"
               />
               {!product.inStock && (
@@ -182,11 +187,15 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
       <Link href={`/shopping/${product.id}`}>
         <div className="relative h-72 overflow-hidden bg-gradient-to-br from-gray-50 to-white cursor-pointer flex items-center justify-center p-6">
           <Image
-            src={product.image.replace('w=500&h=500', 'w=600&h=600&q=85')}
+            src={product.image}
             alt={product.name}
             fill
             className="object-contain group-hover:scale-110 transition-transform duration-500"
-            unoptimized
+            priority={priority}
+            loading={priority ? undefined : 'lazy'}
+            quality={75}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWEREiMxUf/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           {!product.inStock && (
