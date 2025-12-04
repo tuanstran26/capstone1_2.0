@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [greeting, setGreeting] = useState('');
   const [user, setUser] = useState<any>(null);
   const [membership, setMembership] = useState<Membership | null>(null);
+  const [trainer, setTrainer] = useState<any>(null);
 
   // Format price from VND to USD
   const formatPrice = (price: number) => {
@@ -50,11 +51,12 @@ export default function Dashboard() {
 
       // Lấy membershipId
       let membershipId = parsedUser.membership;
+      let assignedPT = parsedUser.assignedPT;
       if (!membershipId) {
         membershipId = localStorage.getItem('membershipId') || null;
       }
       console.log('Membership ID:', membershipId);
-      
+
       // Fetch membership nếu có id hoặc lấy từ localStorage
       if (membershipId) {
         fetch(`http://localhost:5000/admin/memberships/${membershipId}`, {
@@ -80,43 +82,71 @@ export default function Dashboard() {
           })
           .catch((err) => {
             console.error('Error fetching membership:', err);
-                         // Try to get membership from localStorage as fallback
-             const storedMembership = localStorage.getItem('membershipData');
-             if (storedMembership) {
-               try {
-                 const parsedMembership = JSON.parse(storedMembership);
-                 // Add default dates if not present
-                 const membershipWithDates = {
-                   ...parsedMembership,
-                   createdDate: parsedMembership.createdDate || new Date().toISOString(),
-                   expiredDate: parsedMembership.expiredDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-                   status: parsedMembership.status || 'active'
-                 };
-                 setMembership(membershipWithDates);
-               } catch (parseError) {
-                 console.error('Error parsing stored membership:', parseError);
-               }
-             }
+            // Try to get membership from localStorage as fallback
+            const storedMembership = localStorage.getItem('membershipData');
+            if (storedMembership) {
+              try {
+                const parsedMembership = JSON.parse(storedMembership);
+                // Add default dates if not present
+                const membershipWithDates = {
+                  ...parsedMembership,
+                  createdDate: parsedMembership.createdDate || new Date().toISOString(),
+                  expiredDate: parsedMembership.expiredDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+                  status: parsedMembership.status || 'active'
+                };
+                setMembership(membershipWithDates);
+              } catch (parseError) {
+                console.error('Error parsing stored membership:', parseError);
+              }
+            }
           });
       } else {
-                 // Nếu không có membershipId, thử lấy từ localStorage
-         const storedMembership = localStorage.getItem('membershipData');
-         if (storedMembership) {
-           try {
-             const parsedMembership = JSON.parse(storedMembership);
-             // Add default dates if not present
-             const membershipWithDates = {
-               ...parsedMembership,
-               createdDate: parsedMembership.createdDate || new Date().toISOString(),
-               expiredDate: parsedMembership.expiredDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-               status: parsedMembership.status || 'active'
-             };
-             setMembership(membershipWithDates);
-             console.log('Using membership data from localStorage');
-           } catch (parseError) {
-             console.error('Error parsing stored membership:', parseError);
-           }
-         }
+        // Nếu không có membershipId, thử lấy từ localStorage
+        const storedMembership = localStorage.getItem('membershipData');
+        if (storedMembership) {
+          try {
+            const parsedMembership = JSON.parse(storedMembership);
+            // Add default dates if not present
+            const membershipWithDates = {
+              ...parsedMembership,
+              createdDate: parsedMembership.createdDate || new Date().toISOString(),
+              expiredDate: parsedMembership.expiredDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+              status: parsedMembership.status || 'active'
+            };
+            setMembership(membershipWithDates);
+            console.log('Using membership data from localStorage');
+          } catch (parseError) {
+            console.error('Error parsing stored membership:', parseError);
+          }
+        }
+      }
+      if (assignedPT) {
+        fetch(`http://localhost:5000/user/trainer/${assignedPT}`, {
+          method: 'GET',
+          credentials: 'include',
+        })
+          .then(async (res) => {
+            if (!res.ok) {
+              if (res.status === 404) {
+                console.log('Trainer not found');
+                return null;
+              }
+              throw new Error(`Failed to fetch trainer: ${res.status}`);
+            }
+            return res.json();
+          })
+          .then((data: any | null) => {
+            if (data) {
+              setTrainer(data); // lưu trực tiếp vào useState
+            } else {
+              console.log('No trainer data received');
+              setTrainer(null);
+            }
+          })
+          .catch((err) => {
+            console.error('Error fetching trainer:', err);
+            setTrainer(null);
+          });
       }
     }
   }, []);
@@ -124,12 +154,12 @@ export default function Dashboard() {
   // Tính số ngày còn lại
   const daysLeft = membership
     ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(membership.expiredDate).getTime() - new Date().getTime()) /
-            (1000 * 60 * 60 * 24)
-        )
+      0,
+      Math.ceil(
+        (new Date(membership.expiredDate).getTime() - new Date().getTime()) /
+        (1000 * 60 * 60 * 24)
       )
+    )
     : null;
 
   return (
@@ -175,8 +205,8 @@ export default function Dashboard() {
             </div>
             <div className="bg-primary-200 p-4 rounded-md border border-primary-100">
               <p className="text-sm text-gray-300">Plan Price</p>
-              <p className="font-medium text-accent">
-                {membership.price ? formatPrice(membership.price) : '---'}
+              <p className="font-medium  text-white">
+                {membership.price ? membership.price : '---'}
               </p>
             </div>
           </div>
@@ -185,6 +215,32 @@ export default function Dashboard() {
             <Link href="/checkout" className="text-accent hover:text-accent/80 transition-colors font-medium">
               Upgrade Plan
             </Link>
+          </div>
+        </div>
+      )}
+      {/* Personal Trainer Info */}
+      {trainer && (
+        <div className="bg-primary-300 rounded-lg shadow-2xl p-6 mb-8 border border-primary-100">
+          <h2 className="text-xl font-bold text-white mb-4">Your Personal Trainer</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-primary-200 p-4 rounded-md border border-primary-100">
+              <p className="text-sm text-gray-300">Name</p>
+              <p className="font-medium text-white">
+                {trainer.firstname} {trainer.lastname}
+              </p>
+            </div>
+            <div className="bg-primary-200 p-4 rounded-md border border-primary-100">
+              <p className="text-sm text-gray-300">Specialization</p>
+              <p className="font-medium text-white">
+                {trainer.ptSpecialization || 'Not available'}
+              </p>
+            </div>
+            <div className="bg-primary-200 p-4 rounded-md border border-primary-100">
+              <p className="text-sm text-gray-300">Experience</p>
+              <p className="font-medium text-white">
+                {trainer.ptExperience || 'Not available'}
+              </p>
+            </div>
           </div>
         </div>
       )}

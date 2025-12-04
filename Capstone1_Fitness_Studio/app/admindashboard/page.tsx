@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { 
-  FiUsers, 
-  FiActivity, 
-  FiDollarSign, 
-  FiTrendingUp, 
+import {
+  FiUsers,
+  FiActivity,
+  FiDollarSign,
+  FiTrendingUp,
   FiCalendar,
   FiAlertCircle,
   FiCheckCircle,
@@ -15,79 +15,204 @@ import {
   FiArrowDown
 } from 'react-icons/fi'
 
-// Sample data
-const stats = [
-  { name: 'Total Users', value: '245', icon: FiUsers, change: '+12%', changeType: 'increase' },
-  { name: 'Active Trainers', value: '15', icon: FiActivity, change: '+3%', changeType: 'increase' },
-  { name: 'Monthly Revenue', value: '12,500,000₫', icon: FiDollarSign, change: '+8%', changeType: 'increase' },
-  { name: 'New Members', value: '24', icon: FiTrendingUp, change: '+18%', changeType: 'increase' },
-]
 
-const recentActivity = [
-  { 
-    id: 1, 
-    user: 'Nguyen Van A', 
-    action: 'registered for Premium package', 
-    time: '2 hours ago',
-    type: 'membership'
-  },
-  { 
-    id: 2, 
-    user: 'Tran Thi B', 
-    action: 'scheduled session with Trainer Minh', 
-    time: '4 hours ago',
-    type: 'session'
-  },
-  { 
-    id: 3, 
-    user: 'Le Van C', 
-    action: 'completed trainer registration', 
-    time: '1 day ago',
-    type: 'trainer'
-  },
-  { 
-    id: 4, 
-    user: 'Pham Thi D', 
-    action: 'cancelled membership package', 
-    time: '2 days ago',
-    type: 'membership'
-  },
-  { 
-    id: 5, 
-    user: 'Hoang Van E', 
-    action: 'requested refund', 
-    time: '3 days ago',
-    type: 'payment'
-  }
-]
-
-const issues = [
-  { 
-    id: 1, 
-    title: 'Payment system error', 
-    description: 'Users report issues with payment processing',
-    status: 'high',
-    time: '2 hours ago'
-  },
-  { 
-    id: 2, 
-    title: 'Trainer schedule conflict', 
-    description: 'Detected overlapping bookings for Trainer Minh',
-    status: 'medium',
-    time: '1 day ago'
-  },
-  { 
-    id: 3, 
-    title: 'Membership upgrade issue', 
-    description: 'Upgrade from Standard to Premium not displaying correctly',
-    status: 'low',
-    time: '3 days ago'
-  }
-]
 
 export default function AdminDashboard() {
+
   const [activeTab, setActiveTab] = useState('activity')
-  
+  const [users, setUsers] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [totalUser, setTotalUser] = useState(0)
+  const [totalPt, setTotalPt] = useState(0)
+  const [monthlyRevenue, setMonthlyRevenue] = useState(0)
+  const [newMembersThisMonth, setNewMembersThisMonth] = useState(0)
+  const [allUsers, setAllUsers] = useState<any[]>([])
+  const [recentUsers, setRecentUsers] = useState<any[]>([])
+  const [allPTs, setAllPTs] = useState<any[]>([]);
+
+
+  const stats = [
+    { name: 'Total Users', state: totalUser, icon: FiUsers },
+    { name: 'Active Trainers', state: totalPt, icon: FiActivity },
+    { name: 'Monthly Revenue', state: monthlyRevenue.toLocaleString() + '₫', icon: FiDollarSign },
+    { name: 'New Members', state: newMembersThisMonth, icon: FiTrendingUp },
+  ];
+
+  // Fetch user list from API
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [userRes, ptRes, membershipRes, allUsersRes] = await Promise.all([
+        fetch('http://localhost:5000/admin/users', { method: 'GET', credentials: 'include' }),
+        fetch('http://localhost:5000/admin/pts', { method: 'GET', credentials: 'include' }),
+        fetch('http://localhost:5000/admin/memberships', { method: 'GET', credentials: 'include' }),
+        fetch('http://localhost:5000/admin/all-users', { method: 'GET', credentials: 'include' })
+      ])
+      const userData = await userRes.json()
+      const ptData = await ptRes.json()
+      const membershipData = await membershipRes.json()
+      const allUsersData = await allUsersRes.json()
+
+
+      console.log('Fetched All Users:', allUsersData)
+
+      setAllUsers(allUsersData)
+      setAllPTs(ptData)
+      setTotalUser(userData.length)
+      setTotalPt(ptData.length)
+      processRecentUsers(allUsersData)
+
+      // 🔹 Fetch additional membership status for each user
+      const usersWithMembership = await Promise.all(
+        userData.map(async (u: any) => {
+          if (u.membership) {
+            try {
+              const memRes = await fetch(`http://localhost:5000/admin/memberships/${u.membership}`, {
+                credentials: 'include'
+              })
+              if (memRes.ok) {
+                const memData = await memRes.json()
+                return { ...u, membershipStatus: memData.status }
+              }
+            } catch (err) {
+              console.error(`Error fetching membership for user ${u._id}`, err)
+            }
+          }
+          return { ...u, membershipStatus: null }
+        })
+      )
+
+      setUsers(usersWithMembership)
+
+
+      // ======================================================
+      // 🔥 TÍNH DOANH THU THÁNG HIỆN TẠI
+      // ======================================================
+
+      const now = new Date();
+      const currentMonth = now.getUTCMonth();     // 0-11
+      const currentYear = now.getUTCFullYear();   // ví dụ 2025
+
+      const monthlyRevenue = membershipData
+        .filter((m: any) => {
+          if (m.status !== "active") return false;
+
+          const created = new Date(m.createdDate);
+
+          console.log("Created:", created.getUTCMonth(), created.getUTCFullYear());
+
+          return (
+            created.getUTCMonth() === currentMonth &&
+            created.getUTCFullYear() === currentYear
+          );
+        })
+        .reduce((sum: number, m: any) => sum + (m.price || 0), 0);
+
+      console.log("Monthly Revenue:", monthlyRevenue);
+
+      // Lưu doanh thu tháng
+      setMonthlyRevenue(monthlyRevenue);
+
+      const newMembers = userData.filter((u: any) => {
+        if (!u.membership) return false; // must have membership
+
+        const created = new Date(u.createdAt);
+
+        return (
+          created.getUTCMonth() === currentMonth &&
+          created.getUTCFullYear() === currentYear
+        );
+      }).length;
+
+      // Save to state
+      setNewMembersThisMonth(newMembers);
+
+      console.log("New Members This Month:", newMembers);
+
+    } catch (err) {
+      console.error('Error fetching users:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Delete user
+  const deleteUser = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) return
+
+    try {
+      const res = await fetch(`http://localhost:5000/admin/users/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      if (res.ok) {
+        setUsers(users.filter(user => user._id !== id))
+      } else {
+        const errData = await res.json()
+        alert(`Delete failed: ${errData.message}`)
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  // Filter users
+  const filteredUsers = users.filter((u) => {
+    const fullName = `${u.firstname} ${u.lastname}`.toLowerCase();
+    return (
+      fullName.includes(searchTerm.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const getTimeDiffLabel = (createdAt: string) => {
+    const created = new Date(createdAt);
+    const now = new Date();
+
+    const diffMs = now.getTime() - created.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "1 day ago";
+    return `${diffDays} days ago`;
+  };
+
+
+
+  const processRecentUsers = (users: any[]) => {
+    if (!users || users.length === 0) return;
+
+    // Sort theo thời gian giảm dần
+    const sorted = [...users].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    // Format chỉ lấy 5 user mới nhất
+    const formatted = sorted.slice(0, 5).map((u) => ({
+      id: u._id,
+      name: `${u.firstname} ${u.lastname}`,
+      action:
+        u.role === "pt"
+          ? "PT has been created successfully"
+          : "Member has registered successfully",
+      time: getTimeDiffLabel(u.createdAt),
+      type: u.role === "pt" ? "trainer" : "membership",
+    }));
+
+    console.log("Recent Users:", formatted);
+    setRecentUsers(formatted);
+  };
+
+
+
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -96,31 +221,27 @@ export default function AdminDashboard() {
           Today: {new Date().toLocaleDateString('en-US')}
         </div>
       </div>
-      
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.name} className="bg-primary-300 rounded-lg shadow-2xl p-6 border border-primary-100">
+          <div
+            key={stat.name}
+            className="bg-primary-300 rounded-lg shadow-2xl p-6 border border-primary-100"
+          >
             <div className="flex items-center">
+              {/* ICON */}
               <div className="flex-shrink-0">
                 <stat.icon className="h-8 w-8 text-accent" />
               </div>
+
+              {/* TITLE + VALUE */}
               <div className="ml-5 w-0 flex-1">
                 <dl>
                   <dt className="text-sm font-medium text-gray-300 truncate">{stat.name}</dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-white">{stat.value}</div>
-                    <div className={`ml-2 flex items-baseline text-sm font-semibold ${
-                      stat.changeType === 'increase' ? 'text-green-400' : 'text-red-400'
-                    }`}>
-                      {stat.changeType === 'increase' ? (
-                        <FiArrowUp className="self-center flex-shrink-0 h-4 w-4 text-green-400" />
-                      ) : (
-                        <FiArrowDown className="self-center flex-shrink-0 h-4 w-4 text-red-400" />
-                      )}
-                      <span className="sr-only">{stat.changeType === 'increase' ? 'Increased' : 'Decreased'} by</span>
-                      {stat.change}
-                    </div>
+
+                  <dd className="text-2xl font-semibold text-white">
+                    {stat.state}
                   </dd>
                 </dl>
               </div>
@@ -128,7 +249,7 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
-      
+
       {/* Charts */}
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="bg-primary-300 overflow-hidden shadow-2xl rounded-lg border border-primary-100">
@@ -139,7 +260,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-        
+
         <div className="bg-primary-300 overflow-hidden shadow-2xl rounded-lg border border-primary-100">
           <div className="px-4 py-5 sm:p-6">
             <h2 className="text-lg font-medium text-white mb-4">User Growth</h2>
@@ -149,86 +270,72 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-      
+
       {/* Tabs */}
       <div className="bg-primary-300 shadow-2xl rounded-lg border border-primary-100">
         <div className="border-b border-primary-100">
           <nav className="flex -mb-px">
             <button
               onClick={() => setActiveTab('activity')}
-              className={`${
-                activeTab === 'activity'
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-gray-300 hover:text-white hover:border-primary-100'
-              } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors`}
+              className={`${activeTab === 'activity'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-primary-100'
+                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors`}
             >
               Recent Activity
             </button>
             <button
               onClick={() => setActiveTab('trainers')}
-              className={`${
-                activeTab === 'trainers'
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-gray-300 hover:text-white hover:border-primary-100'
-              } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors`}
+              className={`${activeTab === 'trainers'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-gray-300 hover:text-white hover:border-primary-100'
+                } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors`}
             >
               Trainer Applications
             </button>
-            <button
-              onClick={() => setActiveTab('issues')}
-              className={`${
-                activeTab === 'issues'
-                  ? 'border-accent text-accent'
-                  : 'border-transparent text-gray-300 hover:text-white hover:border-primary-100'
-              } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors`}
-            >
-              Issues
-            </button>
+          
           </nav>
         </div>
-        
+
         <div className="px-4 py-5 sm:p-6">
           {/* Recent Activity Tab */}
-          {activeTab === 'activity' && (
+          {activeTab === "activity" && (
             <div className="flow-root">
               <ul className="-mb-8">
-                {recentActivity.map((activity, activityIdx) => (
+                {recentUsers.map((activity, activityIdx) => (
                   <li key={activity.id}>
                     <div className="relative pb-8">
-                      {activityIdx !== recentActivity.length - 1 ? (
+                      {activityIdx !== recentUsers.length - 1 ? (
                         <span
                           className="absolute top-5 left-5 -ml-px h-full w-0.5 bg-primary-100"
                           aria-hidden="true"
                         />
                       ) : null}
+
                       <div className="relative flex items-start space-x-3">
                         <div>
                           <div className="relative px-1">
                             <div className="h-10 w-10 rounded-full bg-primary-200 flex items-center justify-center ring-8 ring-primary-300">
-                              {activity.type === 'membership' && (
+                              {activity.type === "membership" && (
                                 <FiUsers className="h-5 w-5 text-accent" />
                               )}
-                              {activity.type === 'session' && (
-                                <FiCalendar className="h-5 w-5 text-accent" />
-                              )}
-                              {activity.type === 'trainer' && (
+                              {activity.type === "trainer" && (
                                 <FiActivity className="h-5 w-5 text-accent" />
-                              )}
-                              {activity.type === 'payment' && (
-                                <FiDollarSign className="h-5 w-5 text-accent" />
                               )}
                             </div>
                           </div>
                         </div>
+
                         <div className="min-w-0 flex-1">
                           <div>
                             <div className="text-sm font-medium text-white">
-                              {activity.user}
+                              {activity.name}
                             </div>
                             <p className="mt-0.5 text-sm text-gray-300">
                               {activity.action}
                             </p>
                           </div>
+
                           <div className="mt-2 text-sm text-gray-400">
                             <p>{activity.time}</p>
                           </div>
@@ -238,23 +345,14 @@ export default function AdminDashboard() {
                   </li>
                 ))}
               </ul>
-              <div className="mt-6 text-center">
-                <Link href="/admindashboard/activity" className="text-sm font-medium text-accent hover:text-accent/80 transition-colors">
-                  View All Activities
-                </Link>
-              </div>
+
             </div>
           )}
-          
+
+
           {/* Trainer Applications Tab */}
           {activeTab === 'trainers' && (
             <div className="overflow-hidden">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-white">New Trainer Applications</h3>
-                <span className="bg-accent/20 text-accent text-xs font-medium px-2.5 py-0.5 rounded-full border border-accent/30">
-                  3 new applications
-                </span>
-              </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-primary-100">
                   <thead className="bg-primary-200">
@@ -269,114 +367,41 @@ export default function AdminDashboard() {
                         Submit Date
                       </th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th scope="col" className="relative px-6 py-3">
-                        <span className="sr-only">Actions</span>
+                        Experience
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-primary-300 divide-y divide-primary-100">
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">Nguyen Van Minh</div>
-                        <div className="text-sm text-gray-300">nguyenvanminh@example.com</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-white">Yoga, Pilates</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-300">10/07/2023</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900/30 text-yellow-300 border border-yellow-500/30">
-                          Under Review
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="#" className="text-accent hover:text-accent/80 mr-4 transition-colors">View</a>
-                        <a href="#" className="text-green-400 hover:text-green-300 mr-4 transition-colors">Accept</a>
-                        <a href="#" className="text-red-400 hover:text-red-300 transition-colors">Reject</a>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">Trần Thị Hương</div>
-                        <div className="text-sm text-gray-300">tranthihuong@example.com</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-white">Cardio, HIIT</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-300">08/07/2023</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900/30 text-yellow-300 border border-yellow-500/30">
-                          Under Review
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="#" className="text-accent hover:text-accent/80 mr-4 transition-colors">View</a>
-                        <a href="#" className="text-green-400 hover:text-green-300 mr-4 transition-colors">Accept</a>
-                        <a href="#" className="text-red-400 hover:text-red-300 transition-colors">Reject</a>
-                      </td>
-                    </tr>
+                    {allPTs.map((pt) => (
+                      <tr key={pt._id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-white">{pt.firstname} {pt.lastname}</div>
+                          <div className="text-sm text-gray-300">{pt.email}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-white">{pt.ptSpecialization || 'N/A'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-300">{new Date(pt.createdAt).toLocaleDateString()}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900/30 text-yellow-300 border border-yellow-500/30">
+                            {pt.ptExperience || 'N/A'}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
           )}
-          
-          {/* Issues Tab */}
-          {activeTab === 'issues' && (
-            <div className="space-y-4">
-              {issues.map((issue) => (
-                <div 
-                  key={issue.id} 
-                  className={`border-l-4 ${
-                    issue.status === 'high' 
-                      ? 'border-red-500' 
-                      : issue.status === 'medium'
-                        ? 'border-yellow-500'
-                        : 'border-green-500'
-                  } bg-primary-200 p-4 shadow-2xl rounded-r-lg border border-primary-100`}
-                >
-                  <div className="flex justify-between">
-                    <h3 className="text-md font-medium text-white">{issue.title}</h3>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      issue.status === 'high' 
-                        ? 'bg-red-900/30 text-red-300 border border-red-500/30' 
-                        : issue.status === 'medium'
-                          ? 'bg-yellow-900/30 text-yellow-300 border border-yellow-500/30'
-                          : 'bg-green-900/30 text-green-300 border border-green-500/30'
-                    }`}>
-                      {issue.status === 'high' 
-                        ? 'High' 
-                        : issue.status === 'medium'
-                          ? 'Medium'
-                          : 'Low'
-                      }
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-gray-300">{issue.description}</p>
-                  <div className="mt-2 flex justify-between items-center">
-                    <span className="text-xs text-gray-400">{issue.time}</span>
-                    <button className="text-accent hover:text-accent/80 text-sm font-medium transition-colors">
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              ))}
-              <div className="mt-4 text-center">
-                <Link href="/admindashboard/issues" className="text-sm font-medium text-accent hover:text-accent/80 transition-colors">
-                  View All Issues
-                </Link>
-              </div>
-            </div>
-          )}
+
+
+        
         </div>
       </div>
-      
+
       {/* Quick Actions */}
       <div className="bg-primary-300 shadow-2xl rounded-lg p-6 border border-primary-100">
         <h2 className="text-lg font-medium text-white mb-4">Quick Actions</h2>

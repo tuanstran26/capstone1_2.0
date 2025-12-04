@@ -13,6 +13,7 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [totalUser, setTotalUser] = useState(0)
 
   // Fetch user list from API
   const fetchUsers = async () => {
@@ -23,6 +24,8 @@ export default function UsersPage() {
         credentials: 'include' 
       })
       const data = await res.json()
+
+      setTotalUser(data.length)
 
       // 🔹 Fetch additional membership status for each user
       const usersWithMembership = await Promise.all(

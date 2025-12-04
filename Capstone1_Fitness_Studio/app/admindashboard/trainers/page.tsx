@@ -133,7 +133,9 @@ export default function UsersPage() {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Full Name</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Membership</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Specialization</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Experience</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Clients</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -154,19 +156,32 @@ export default function UsersPage() {
                         {user.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {user.membershipStatus ? (
-                          <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.membershipStatus === "active"
-                                ? "bg-green-900/30 text-green-300 border border-green-500/30"
-                                : user.membershipStatus === "pending"
-                                  ? "bg-yellow-900/30 text-yellow-300 border border-yellow-500/30"
-                                  : "bg-red-900/30 text-red-300 border border-red-500/30"
-                              }`}
-                          >
-                            {user.membershipStatus}
+                        {user.ptSpecialization ? (
+                          <span className="px-2 py-1 text-sm font-medium text-white rounded bg-primary-600/50">
+                            {user.ptSpecialization}
                           </span>
                         ) : (
                           <span className="text-gray-400 text-sm">Not available</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {user.ptExperience ? (
+                          <span className="px-2 py-1 text-sm font-medium text-white rounded bg-primary-600/50">
+                            {user.ptExperience}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-sm">Not available</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {user.ptClients && user.ptClients.length > 0 ? (
+                          <ul className="text-sm text-white space-y-1">
+                            {user.ptClients.map((client: { userId: string; name: string }, idx: number) => (
+                              <li key={client.userId}>{client.name}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span className="text-gray-400 text-sm">No clients</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -187,6 +202,7 @@ export default function UsersPage() {
                         </div>
                       </td>
                     </tr>
+
                   ))
                 )}
               </tbody>
