@@ -104,6 +104,8 @@ router.get("/all-users", ensureAuthenticated, isAdmin, async (req: Request, res:
   }
 });
 
+
+// Lấy thông tin membership theo ID
 router.get(
   "/memberships/:id",
   ensureAuthenticated,

@@ -11,6 +11,7 @@ import userRoutes from "./routes/userRouter";
 import ptRouter from "./routes/ptRouter";
 import scheduleRouter from "./routes/scheduleRouter";
 import productRouter from "./routes/productRouter";
+import cartRouter from "./routes/cartRouter";
 import cors from "cors";
 
 dotenv.config();
@@ -59,6 +60,7 @@ app.use("/user", userRoutes);
 app.use("/pt", ptRouter);
 app.use("/schedule", scheduleRouter);
 app.use("/product", productRouter);
+app.use("/cart", cartRouter);
 
 // DB connect
 mongoose
