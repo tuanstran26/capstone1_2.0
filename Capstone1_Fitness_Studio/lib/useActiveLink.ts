@@ -9,12 +9,19 @@ export interface NavLink {
 
 export const useActiveLink = (navLinks: NavLink[]) => {
   const [activeLink, setActiveLink] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSetActive = (linkName: string) => {
     setActiveLink(linkName);
   };
 
   useEffect(() => {
+    if (!mounted) return;
+
     const handleScroll = () => {
       const sections = navLinks.map(link => ({
         id: link.target,
@@ -23,6 +30,18 @@ export const useActiveLink = (navLinks: NavLink[]) => {
       }));
 
       const scrollPosition = window.scrollY + 200;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Check if we're at the bottom of the page
+      const isAtBottom = scrollPosition + windowHeight >= documentHeight - 20;
+      
+      if (isAtBottom) {
+        // If at bottom, set the last link as active
+        const lastLink = navLinks[navLinks.length - 1];
+        setActiveLink(lastLink.target);
+        return;
+      }
 
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
@@ -50,7 +69,7 @@ export const useActiveLink = (navLinks: NavLink[]) => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [navLinks]);
+  }, [navLinks, mounted]);
 
   return { activeLink, handleSetActive };
 };

@@ -137,4 +137,3 @@ coverage.xml
 .idea/
 
 # Custom - ignore trained models
-models/
