@@ -6,6 +6,8 @@ import { motion } from 'framer-motion'
 import { FaCheckCircle, FaSpinner, FaTimesCircle, FaHome } from 'react-icons/fa'
 import ClientOnly from '../../../components/ClientOnly'
 
+export const dynamic = 'force-dynamic';
+
 export default function CheckoutSuccessPage() {
   const router = useRouter()
   const searchParams = useSearchParams()

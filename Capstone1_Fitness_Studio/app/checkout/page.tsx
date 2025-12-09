@@ -7,6 +7,8 @@ import ZaloPayIcon from '../../components/ui/ZaloPayIcon'
 import ZaloPayLoading from '../../components/ui/ZaloPayLoading'
 import ClientOnly from '../../components/ClientOnly'
 
+export const dynamic = 'force-dynamic';
+
 // Define membership plan types
 const membershipPlans = [
   {

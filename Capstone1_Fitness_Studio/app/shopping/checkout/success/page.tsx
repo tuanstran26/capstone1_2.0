@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -6,6 +7,8 @@ import { FaCheckCircle, FaHome, FaShoppingBag, FaBox, FaTruck, FaEnvelope } from
 import Link from 'next/link';
 import Image from 'next/image';
 import confetti from 'canvas-confetti';
+
+export const dynamic = 'force-dynamic';
 
 export default function ShoppingCheckoutSuccess() {
   const router = useRouter();
