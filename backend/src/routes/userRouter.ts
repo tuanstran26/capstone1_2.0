@@ -5,6 +5,7 @@ import { Router, Request, Response, NextFunction } from "express";
 const router = Router();
 
 
+// Tìm kiếm PT theo tên
 router.get(
     "/trainers-search",
     ensureAuthenticated,
@@ -33,7 +34,7 @@ router.get(
 );
 
 
-
+// Gán PT cho user
 router.post("/assign-pt", async (req: Request, res: Response) => {
     try {
         const { ptId, userId, ptName, userName, status } = req.body;
@@ -67,6 +68,7 @@ router.post("/assign-pt", async (req: Request, res: Response) => {
 });
 
 
+// Get PT profile theo ID
 router.get("/trainer/:id", ensureAuthenticated, async (req: Request, res: Response) => {
   try {
     const ptId = req.params.id;
@@ -91,6 +93,7 @@ router.get("/trainer/:id", ensureAuthenticated, async (req: Request, res: Respon
 });
 
 
+// Tìm user theo id
 router.get("/find-user/:id", ensureAuthenticated, async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;

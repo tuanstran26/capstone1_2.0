@@ -6,6 +6,7 @@ const router = Router();
 import mongoose from "mongoose";
 
 
+//Approve PT assignment
 router.patch(
     "/assign-pt/:id/approve",
     ensureAuthenticated,
@@ -76,7 +77,7 @@ router.patch(
     }
 );
 
-
+//Reject PT assignment
 router.patch("/assign-pt/:id/reject", ensureAuthenticated, async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -98,6 +99,7 @@ router.patch("/assign-pt/:id/reject", ensureAuthenticated, async (req: Request, 
 });
 
 
+// Update PT profile
 router.patch(
     "/update-profile/:id",
     ensureAuthenticated, // or ensure trainer role

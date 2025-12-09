@@ -10,7 +10,9 @@ import adminRoutes from "./routes/adminRouter";
 import userRoutes from "./routes/userRouter";
 import ptRouter from "./routes/ptRouter";
 import scheduleRouter from "./routes/scheduleRouter";
-import cors from "cors"; 
+import productRouter from "./routes/productRouter";
+import cartRouter from "./routes/cartRouter";
+import cors from "cors";
 
 dotenv.config();
 
@@ -30,7 +32,7 @@ app.use(cors({
 // Session setup
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "supersecret", 
+    secret: process.env.SESSION_SECRET || "supersecret",
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -39,7 +41,7 @@ app.use(
       maxAge: 1000 * 60 * 60 * 24 * 7,
     },
     store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI 
+      mongoUrl: process.env.MONGO_URI
         || "mongodb+srv://haihuynhcit20:Xrikkk6xgRLcf3MS@fitnessstudio.qibuuw7.mongodb.net/",
       collectionName: "sessions",
     }),
@@ -57,10 +59,12 @@ app.use("/admin", adminRoutes);
 app.use("/user", userRoutes);
 app.use("/pt", ptRouter);
 app.use("/schedule", scheduleRouter);
+app.use("/product", productRouter);
+app.use("/cart", cartRouter);
 
 // DB connect
 mongoose
-  .connect(process.env.MONGO_URI 
+  .connect(process.env.MONGO_URI
     || "mongodb+srv://haihuynhcit20:Xrikkk6xgRLcf3MS@fitnessstudio.qibuuw7.mongodb.net/")
   .then(() => {
     console.log("✅ MongoDB connected");

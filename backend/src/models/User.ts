@@ -19,10 +19,14 @@ export interface IUser extends Document {
   assignedPT: mongoose.Types.ObjectId | null;
   address: string | null;
 
+  // SHOP fields
+  cartId: mongoose.Types.ObjectId | null;
+  orders: mongoose.Types.ObjectId[];
+
   // PT fields
   ptSpecialization: string | null;
   ptExperience: number | null;
-  ptClients: mongoose.Types.ObjectId[]; // List user IDs
+  ptClients: mongoose.Types.ObjectId[];
 }
 
 const UserSchema: Schema = new Schema(
@@ -54,6 +58,10 @@ const UserSchema: Schema = new Schema(
     membership: { type: Schema.Types.ObjectId, ref: "Membership", default: null },
     assignedPT: { type: Schema.Types.ObjectId, ref: "User", default: null },
     address: { type: String, default: null },
+
+    // ----- SHOP FIELDS -----
+    cartId: { type: Schema.Types.ObjectId, ref: "Cart", default: null },
+    orders: [{ type: Schema.Types.ObjectId, ref: "Order", default: [] }],
 
     // ----- PT FIELDS -----
     ptSpecialization: { type: String, default: null },
