@@ -1,0 +1,34 @@
+AeroFLX+ Seamless Tee
+AeroFLX+ is for when you plan to sweat a lot.
+
+The Mens Navy AeroFLX+ Seamless Tee features body-mapped ventilation that provides air flow and breathability where you need it most. Backed by over 18 months of research and development we analysed athletes body temperatures through a range of workouts and built the fit, feel and function of the fabric based on their needs.
+
+A cutting edge performance needs cutting edge fabric technology, which is why we introduced Ionic+ silver yarns to keep you fresher for longer.
+
+Ionic+™ Technology
+Lightweight moisture wicking poly yarns are bonded with positively charged silver ions (that’s where the ‘+’ comes from) which neutralise body odour meaning you can go longer between washes.
+
+AeroFLX+ is our ultimate training fabric.
+-----------------------------------
+{
+  "id": "auto_generated",
+  "name": "AeroFLX+ Seamless Tee",
+  "slug": "aeroflx-seamless-tee",
+  "description": "The Mens Navy AeroFLX+ Seamless Tee features body-mapped ventilation that provides air flow and breathability where you need it most. Backed by over 18 months of research and development, we analysed athletes' body temperatures through a range of workouts and built the fit, feel, and function of the fabric based on their needs. Lightweight moisture-wicking poly yarns are bonded with positively charged silver ions to neutralise body odour and keep you fresher for longer.",
+  "shortDescription": "Mens Navy AeroFLX+ Seamless Tee with body-mapped ventilation and Ionic+ silver yarn technology for ultimate training comfort.",
+  "brand": "ObjectId_here",         // Thay bằng ObjectId thực tế của brand
+  "category": "ObjectId_here",      // Thay bằng ObjectId thực tế của category
+  "images": [
+    {
+      "url": "https://example.com/images/aeroflx-seamless-tee-navy.webp",
+      "alt": "AeroFLX+ Seamless Tee - Navy"
+    }
+  ],
+  "status": "active",
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+  "createdAt": "2025-11-22T12:00:00Z",
+  "updatedAt": "2025-11-22T12:00:00Z"
+}

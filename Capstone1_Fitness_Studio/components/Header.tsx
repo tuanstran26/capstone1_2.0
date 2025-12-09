@@ -6,6 +6,7 @@ import Image from "next/image"
 import { useEffect, useState } from "react"
 import { MdMenu } from "react-icons/md"
 import { usePathname } from "next/navigation"
+import CartIcon from "./shopping/CartIcon"
 
 // Định nghĩa kiểu User (đúng với BE trả về)
 interface User {
@@ -23,7 +24,7 @@ interface User {
   updatedAt: string;
 }
 
-const Header = () => {
+const Header = ({ hideScrollNav = false }: { hideScrollNav?: boolean }) => {
   const [openNav, setOpenNav] = useState(false);
   const [headerActive, setHeaderActive] = useState(false);
   const [user, setUser] = useState<User | null>(null);
@@ -82,7 +83,13 @@ const Header = () => {
 
         {/* logo */}
         <Link href='/'>
-          <Image src={'/assets/img/logo.png'} alt="logo" width={117} height={55} />
+          <Image 
+            src='/Logo.png'
+            alt="logo" 
+            width={85} 
+            height={40}
+            className="transition-all duration-300" 
+          />
         </Link>
 
         {/* mobile nav */}
@@ -93,11 +100,23 @@ const Header = () => {
           flex flex-col text-center gap-8 fixed
           bg-primary-200 w-full left-0 text-base uppercase font-medium text-white transition-all lg:hidden `} />
 
-        {/* desktop nav */}
-        <Nav containerStyles='flex gap-4 text-white text-base uppercase font-medium transition-all duration-300 hidden xl:flex ' />
+        {/* desktop nav - only show if hideScrollNav is false */}
+        {!hideScrollNav && (
+          <Nav containerStyles='flex gap-4 text-white text-base uppercase font-medium transition-all duration-300 hidden xl:flex ' />
+        )}
 
         {/* right side */}
         <div className="flex items-center gap-4">
+          {/* Cart Icon - visible for all users */}
+          <CartIcon />
+          
+          {/* Shopping Button - visible for all users */}
+          <Link href="/shopping">
+            <button className="hover:text-accent transition-all duration-300 text-base uppercase font-medium text-white flex items-center gap-2">
+              <span className="hidden sm:inline">Shopping</span>
+            </button>
+          </Link>
+
           {/* If user is not logged in */}
           {!user ? (
             <div className='text-white flex items-center gap-4'>

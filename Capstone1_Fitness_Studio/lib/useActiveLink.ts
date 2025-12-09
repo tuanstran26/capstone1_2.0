@@ -1,56 +1,77 @@
-'use client'
 import { useState, useEffect } from 'react';
 
+// Định nghĩa kiểu dữ liệu cho link
 export interface NavLink {
   name: string;
   target: string;
-  offset?: number;
+  offset: number;
 }
 
-export const useActiveLink = (navLinks: NavLink[]) => {
-  const [activeLink, setActiveLink] = useState('');
-
-  const handleSetActive = (linkName: string) => {
-    setActiveLink(linkName);
-  };
-
+export const useActiveLink = (links: NavLink[]) => {
+  const [activeLink, setActiveLink] = useState('home');
+  const [mounted, setMounted] = useState(false);
+  
   useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Xử lý sự kiện cuộn trang
+  useEffect(() => {
+    if (!mounted) return;
+    
     const handleScroll = () => {
-      const sections = navLinks.map(link => ({
-        id: link.target,
-        element: document.getElementById(link.target),
-        offset: link.offset || -100,
-      }));
-
-      const scrollPosition = window.scrollY + 200;
-
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
-        if (section.element) {
-          const sectionTop = section.element.offsetTop + section.offset;
-          if (scrollPosition >= sectionTop) {
-            setActiveLink(section.id);
-            break;
-          }
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Check if we're at the bottom of the page
+      const isAtBottom = scrollPosition + windowHeight >= documentHeight - 20;
+      
+      if (isAtBottom) {
+        // If at bottom, set the last link as active (contact)
+        const lastLink = links[links.length - 1];
+        setActiveLink(lastLink.name);
+        return;
+      }
+      
+      // Find the section currently in view
+      for (let i = links.length - 1; i >= 0; i--) {
+        const link = links[i];
+        const element = document.getElementById(link.target);
+        
+        if (!element) continue;
+        
+        const rect = element.getBoundingClientRect();
+        const offsetPosition = element.offsetTop - 150;
+        
+        // Get the next section if it exists
+        const nextElement = i < links.length - 1 ? document.getElementById(links[i + 1].target) : null;
+        const nextOffsetPosition = nextElement ? nextElement.offsetTop - 150 : documentHeight;
+        
+        // Consider a section visible if its top is in the viewport or if we've scrolled past it
+        // but not yet reached the next section
+        if (
+          (rect.top <= 150 && rect.bottom > 0) || 
+          (scrollPosition >= offsetPosition && scrollPosition < nextOffsetPosition)
+        ) {
+          setActiveLink(link.name);
+          break;
         }
       }
-
-      // If at the very top of the page
-      if (window.scrollY < 100) {
-        setActiveLink(navLinks[0]?.target || '');
-      }
     };
-
-    // Set initial active link
-    handleScroll();
-
-    // Add scroll event listener
+    
     window.addEventListener('scroll', handleScroll);
-
+    handleScroll(); // Gọi khi component mount
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [navLinks]);
-
+  }, [links, mounted]);
+  
+  // Xử lý việc nhấp chuột vào liên kết
+  const handleSetActive = (name: string) => {
+    setActiveLink(name);
+  };
+  
   return { activeLink, handleSetActive };
-};
+}; 

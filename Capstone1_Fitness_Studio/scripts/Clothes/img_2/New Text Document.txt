@@ -1,0 +1,39 @@
+AeroFLX+ Seamless Long Sleeve Tee
+AeroFLX+ is for when you plan to sweat a lot.
+
+The Mens Dark Storm AeroFLX+ Seamless Long Sleeve Tee features body-mapped ventilation that provides air flow and breathability where you need it most. Backed by over 18 months of research and development we analysed athletes body temperatures through a range of workouts and built the fit, feel and function of the fabric based on their needs.
+
+A cutting edge performance needs cutting edge fabric technology, which is why we introduced Ionic+ silver yarns to keep you fresher for longer.
+
+Ionic+™ Technology
+Lightweight moisture wicking poly yarns are bonded with positively charged silver ions (that’s where the ‘+’ comes from) which neutralise body odour meaning you can go longer between washes.
+
+Designed For:
+----------------------------------------------
+{
+  "id": "auto_generated",
+  "name": "AeroFLX+ Seamless Long Sleeve Tee – Dark Storm",
+  "slug": "aeroflx-plus-seamless-long-sleeve-tee-dark-storm",
+  "description": "The AeroFLX+ Seamless Long Sleeve Tee is designed for those high-sweat sessions where performance and breathability matter most. The Mens Dark Storm AeroFLX+ Tee features body-mapped ventilation zones that enhance airflow and keep you cool where your body generates the most heat. Developed through over 18 months of research, this tee was engineered by analysing athlete temperature patterns across various workouts to deliver a precise balance of fit, comfort, and functional performance.\n\nTo match the demands of cutting-edge training, the fabric incorporates Ionic+™ silver yarns. Lightweight, moisture-wicking poly yarns bonded with positively charged silver ions help neutralise odour, keeping you fresher for longer and allowing more wears between washes.\n\nDesigned For:\n- High-sweat training sessions\n- HIIT and conditioning\n- Strength training\n- Running and outdoor workouts\n- Everyday athletic performance",
+  "shortDescription": "Seamless long sleeve tee with body-mapped ventilation and Ionic+™ odour-neutralising technology.",
+  
+  "brand": "ObjectId('your_brand_id')",
+  "category": "ObjectId('your_category_id')",
+
+  "images": [
+    {
+      "url": "/images/products/M-Model-Mens-AeroFLX_Seamless-Long-Sleeve-Tee-Dark-Storm.webp",
+      "alt": "Mens AeroFLX+ Seamless Long Sleeve Tee – Dark Storm"
+    }
+  ],
+
+  "status": "active",
+
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+
+  "createdAt": "2025-11-21T00:00:00Z",
+  "updatedAt": "2025-11-21T00:00:00Z"
+}

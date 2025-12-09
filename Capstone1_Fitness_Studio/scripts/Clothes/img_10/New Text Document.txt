@@ -1,0 +1,24 @@
+Stamina Sports BraKeep pushing. The Candy Pink Stamina Sports Bra features a cross-back strap design with removable cups and bonded hem band & edges for added support. Whilst being a lower support style with less coverage, this bra can still be put to work in a range of light to medium intensity workouts. 
+------------------
+{
+  "id": "auto_generated",
+  "name": "Stamina Sports Bra",
+  "slug": "stamina-sports-bra-candy-pink",
+  "description": "The Candy Pink Stamina Sports Bra is designed to help you keep pushing through every session. Built with a stylish and functional cross-back strap system, it offers comfortable support with removable cups and bonded hem edges for a smooth, secure feel. Although crafted as a lower-support, lower-coverage silhouette, the Stamina Bra remains dependable for a wide range of light to medium-intensity workouts — from strength training to mobility sessions.",
+  "shortDescription": "Cross-back sports bra with removable cups and bonded edges, ideal for light to medium-intensity training.",
+  "brand": "ObjectId_here",
+  "category": "ObjectId_here",
+  "images": [
+    {
+      "url": "https://example.com/images/stamina-sports-bra-candy-pink.webp",
+      "alt": "Stamina Sports Bra - Candy Pink"
+    }
+  ],
+  "status": "active",
+  "rating": {
+    "avg": 0,
+    "count": 0
+  },
+  "createdAt": "2025-11-22T12:00:00Z",
+  "updatedAt": "2025-11-22T12:00:00Z"
+}

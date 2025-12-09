@@ -27,7 +27,7 @@ const Footer = () => {
             <h3 className="text-xl font-bold mb-4">Fitness Studio</h3>
             <div className="mb-4 relative w-[120px] h-[60px]">
               <Image 
-                src="/assets/img/logo.png" 
+                src="/Logo.png" 
                 alt="Fitness Studio Logo" 
                 fill
                 className="object-contain"
