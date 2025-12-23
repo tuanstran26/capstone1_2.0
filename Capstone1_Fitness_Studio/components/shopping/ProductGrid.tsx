@@ -7,6 +7,8 @@ interface ProductGridProps {
   viewMode?: 'grid' | 'list';
 }
 
+
+
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -32,7 +34,7 @@ const ProductGrid = ({ products, viewMode = 'grid' }: ProductGridProps) => {
         className="space-y-4"
       >
         {products.map((product, index) => (
-          <motion.div key={product.id} variants={itemVariants}>
+          <motion.div key={product._id} variants={itemVariants}>
             <ProductCard product={product} index={index} viewMode="list" />
           </motion.div>
         ))}
@@ -48,7 +50,7 @@ const ProductGrid = ({ products, viewMode = 'grid' }: ProductGridProps) => {
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
     >
       {products.map((product, index) => (
-        <motion.div key={product.id} variants={itemVariants}>
+        <motion.div key={product._id} variants={itemVariants}>
           <ProductCard product={product} index={index} viewMode="grid" />
         </motion.div>
       ))}

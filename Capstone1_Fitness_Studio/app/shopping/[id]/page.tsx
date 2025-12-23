@@ -6,42 +6,106 @@ import { FiShoppingCart, FiCheck, FiArrowLeft, FiTruck, FiShield, FiRefreshCw, F
 import { useCart } from '@/lib/CartContext';
 import ImageGallery from '@/components/shopping/ImageGallery';
 import { Product } from '@/components/shopping/ProductCard';
-import sportsProducts from '@/lib/productsData';
 import Link from 'next/link';
 
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { addToCart, isInCart } = useCart();
+  const { totalItems, addItem, removeItem } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'features' | 'specifications'>('description');
 
-  useEffect(() => {
-    const foundProduct = sportsProducts.find((p: Product) => p.id === params.id);
-    if (foundProduct) {
-      console.log('Found product:', foundProduct.name);
-      console.log('Product images:', foundProduct.images);
-      console.log('Product image (fallback):', foundProduct.image);
-      setProduct(foundProduct);
-    } else {
-      router.push('/shopping');
-    }
-  }, [params.id, router]);
+  // useEffect(() => {
+  //   const foundProduct = sportsProducts.find((p: Product) => p._id === params.id);
+  //   if (foundProduct) {
+  //     console.log('Found product:', foundProduct.name);
+  //     console.log('Product images:', foundProduct.images);
+  //     console.log('Product image (fallback):', foundProduct.images[0]);
+  //     setProduct(foundProduct);
+  //   } else {
+  //     router.push('/shopping');
+  //   }
+  // }, [params.id, router]);
 
-  const handleAddToCart = () => {
-    if (!product) return;
-    for (let i = 0; i < quantity; i++) {
-      addToCart(product);
+
+  useEffect(() => {
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
+    if (!id) return;
+
+    async function fetchProduct() {
+      try {
+        const res = await fetch(`http://localhost:5000/product/get-product/${id}`);
+
+        if (!res.ok) {
+          console.error("Failed to fetch product");
+          return;
+        }
+
+        const data = await res.json();
+        console.log("Fetched product:", data);
+
+        setProduct(data);
+      } catch (error) {
+        console.error("Fetch product error:", error);
+      }
     }
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 2000);
-  };
+
+    fetchProduct();
+  }, [params.id])
+
+
+  // const handleAddToCart = () => {
+  //   if (!product) return;
+  //   for (let i = 0; i < quantity; i++) {
+  //     addToCart(product);
+  //   }
+  //   setJustAdded(true);
+  //   setTimeout(() => setJustAdded(false), 2000);
+  // };
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.max(1, Math.min(10, prev + delta)));
   };
+
+  const handleAddToCart = async () => {
+    console.log('Adding to cart:', product, 'Quantity:', quantity);
+    if (!product) return;
+    const storedData = localStorage.getItem('user');
+    if (!storedData) {
+      alert('Please log in to add items to your cart.');
+      return;
+    }
+    const userData = JSON.parse(storedData);
+    console.log("product._id:", product._id);
+    const cartId = userData?.cartId;
+    const res = await fetch(`http://localhost:5000/cart/add/${cartId}`, {
+      method: 'POST',
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        productId: product._id,
+        name: product.name,
+        url: product.images[0].url || '',
+        price: product.price,
+        quantity: quantity,
+      }),
+    });
+    if (res.ok) {
+      console.log('Added to cart successfully');
+      addItem(quantity);
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 5000);
+
+    } else {
+      console.error('Failed to add to cart');
+      alert('Failed to add to cart. Please try again.');
+    }
+  }
 
   if (!product) {
     return (
@@ -51,9 +115,9 @@ export default function ProductDetailPage() {
     );
   }
 
-  const images = product.images || [product.image];
+  const images = product.images?.map((img: any) => img.url) || [];
   console.log('Images to display:', images);
-  const inCart = isInCart(product.id);
+  // const inCart = isInCart(product._id);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -99,15 +163,14 @@ export default function ProductDetailPage() {
                 {[...Array(5)].map((_, i) => (
                   <FiStar
                     key={i}
-                    className={`w-5 h-5 ${
-                      i < product.rating
-                        ? 'text-yellow-400 fill-yellow-400'
-                        : 'text-gray-300'
-                    }`}
+                    className={`w-5 h-5 ${i < product.rating.avg
+                      ? 'text-yellow-400 fill-yellow-400'
+                      : 'text-gray-300'
+                      }`}
                   />
                 ))}
               </div>
-              <span className="text-gray-600">({product.rating}.0)</span>
+              <span className="text-gray-600">({product.rating.avg}.0)</span>
               {!product.inStock && (
                 <span className="text-red-600 font-semibold">Out of Stock</span>
               )}
@@ -116,10 +179,10 @@ export default function ProductDetailPage() {
             <div className="py-4 border-y border-gray-200">
               <div className="flex items-baseline gap-4">
                 <span className="text-5xl font-bold text-accent">
-                  ${product.price.toFixed(2)}
+                  {product.price} VND
                 </span>
                 <span className="text-gray-500 line-through text-xl">
-                  ${(product.price * 1.3).toFixed(2)}
+                  {(product.price * 1.3)}
                 </span>
                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
                   Save 23%
@@ -158,13 +221,12 @@ export default function ProductDetailPage() {
               <button
                 onClick={handleAddToCart}
                 disabled={!product.inStock}
-                className={`flex-1 py-4 rounded-lg font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
-                  product.inStock
-                    ? justAdded
-                      ? 'bg-green-500 text-white'
-                      : 'bg-accent text-white hover:bg-accent-hover hover:shadow-xl hover:scale-105'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                className={`flex-1 py-4 rounded-lg font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${product.inStock
+                  ? justAdded
+                    ? 'bg-green-500 text-white'
+                    : 'bg-accent text-white hover:bg-accent-hover hover:shadow-xl hover:scale-105'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
               >
                 {!product.inStock ? (
                   'Out of Stock'
@@ -176,7 +238,7 @@ export default function ProductDetailPage() {
                 ) : (
                   <>
                     <FiShoppingCart className="w-6 h-6" />
-                    {inCart ? `Add ${quantity} More to Cart` : 'Add to Cart'}
+                    {/* {inCart ? `Add ${quantity} More to Cart` : 'Add to Cart'} */}
                   </>
                 )}
               </button>
@@ -219,11 +281,10 @@ export default function ProductDetailPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`pb-4 text-lg font-semibold capitalize transition-all ${
-                  activeTab === tab
-                    ? 'text-accent border-b-4 border-accent'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                className={`pb-4 text-lg font-semibold capitalize transition-all ${activeTab === tab
+                  ? 'text-accent border-b-4 border-accent'
+                  : 'text-gray-500 hover:text-gray-700'
+                  }`}
               >
                 {tab}
               </button>
@@ -249,46 +310,23 @@ export default function ProductDetailPage() {
               </motion.div>
             )}
 
-            {activeTab === 'features' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Key Features</h3>
-                <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {product.features?.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <FiCheck className="w-6 h-6 text-green-500 flex-shrink-0 mt-1" />
-                      <span className="text-gray-700 text-lg">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            )}
 
-            {activeTab === 'specifications' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">Technical Specifications</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {product.specifications &&
-                    Object.entries(product.specifications).map(([key, value], index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center p-4 bg-gray-50 rounded-lg"
-                      >
-                        <span className="font-semibold text-gray-700">{key}:</span>
-                        <span className="text-gray-600">{value}</span>
-                      </div>
-                    ))}
-                </div>
-              </motion.div>
-            )}
+
+
           </div>
         </motion.div>
       </div>
     </div>
   );
 }
+
+// 'use client';
+// export default function ProductDetailTest({ params }: { params: { id: string } }) {
+//   return (
+//     <div className="p-10 text-3xl font-bold">
+//       Product Detail Page
+//       <br />
+//       <span className="text-blue-600">ID: {params.id}</span>
+//     </div>
+//   );
+// }

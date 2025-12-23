@@ -5,12 +5,40 @@ import { Router, Request, Response, NextFunction } from "express";
 const router = Router();
 
 
+
+
+
+router.get("/get/:cartId", async (req: Request, res: Response) => {
+    try {
+        const { cartId } = req.params;
+
+        if (!cartId) {
+            return res.status(400).json({ message: "Cart ID is required" });
+        }
+
+        const cart = await Cart.findById(cartId).select("-__v");
+
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+
+        return res.json(cart);
+    } catch (error) {
+        console.error("Error fetching cart:", error);
+        return res.status(500).json({
+            message: "Error fetching cart",
+            error,
+        });
+    }
+});
+
+
 // Tìm kiếm PT theo tên
 // POST /cart/:cartId/add
 router.post("/add/:cartId", ensureAuthenticated, async (req: Request, res: Response) => {
     try {
         const { cartId } = req.params;
-        const { productId, name, price, quantity } = req.body;
+        const { productId, name, url, price, quantity } = req.body;
 
         if (!productId || !name || !price || !quantity) {
             return res.status(400).json({ message: "Missing required fields" });
@@ -34,6 +62,7 @@ router.post("/add/:cartId", ensureAuthenticated, async (req: Request, res: Respo
             cart.items.push({
                 productId,
                 name,
+                url,
                 quantity,
                 price,
                 totalPrice: price * quantity,
@@ -62,47 +91,58 @@ router.post("/add/:cartId", ensureAuthenticated, async (req: Request, res: Respo
 
 
 // DELETE /cart/:cartId/items/:productId
-router.delete("/remove/:cartId/items/:productId", ensureAuthenticated, async (req: Request, res: Response) => {
-    try {
-        const { cartId, productId } = req.params;
+// DELETE /cart/remove/:cartId/items/:productId?qty=2
+router.delete(
+    "/remove/:cartId/items/:productId",
+    ensureAuthenticated,
+    async (req: Request, res: Response) => {
+        try {
+            const { cartId, productId } = req.params;
+            let qtyToRemove = parseInt(req.query.qty as string) || 1; // default = 1
 
-        const cart = await Cart.findById(cartId);
-        if (!cart) return res.status(404).json({ message: "Cart not found" });
+            const cart = await Cart.findById(cartId);
+            if (!cart) return res.status(404).json({ message: "Cart not found" });
 
-        // Tìm item trong giỏ
-        const item = cart.items.find(
-            (it) => it.productId.toString() === productId
-        );
-
-        if (!item) {
-            return res.status(404).json({ message: "Item not found in cart" });
-        }
-
-        // Nếu quantity > 1 → giảm 1
-        if (item.quantity > 1) {
-            item.quantity -= 1;
-            item.totalPrice = item.quantity * item.price;
-        } else {
-            // Nếu quantity = 1 → xóa item khỏi giỏ
-            cart.items = cart.items.filter(
-                (it) => it.productId.toString() !== productId
+            const item = cart.items.find(
+                (it) => it.productId.toString() === productId
             );
+
+            if (!item) {
+                return res.status(404).json({ message: "Item not found in cart" });
+            }
+
+            // Nếu gửi qty lớn hơn số lượng item → xoá toàn bộ
+            if (qtyToRemove >= item.quantity) {
+                cart.items = cart.items.filter(
+                    (it) => it.productId.toString() !== productId
+                );
+            } else {
+                // Trừ quantity theo số yêu cầu
+                item.quantity -= qtyToRemove;
+                item.totalPrice = item.quantity * item.price;
+            }
+
+            // Tính lại tổng giá giỏ hàng
+            cart.totalCartPrice = cart.items.reduce(
+                (sum, i) => sum + i.totalPrice,
+                0
+            );
+
+            await cart.save();
+
+            return res.json({
+                message: "Item removed successfully",
+                cart,
+            });
+        } catch (err) {
+            return res.status(500).json({
+                message: "Error updating cart",
+                error: err,
+            });
         }
-
-        // Cập nhật tổng tiền của cart
-        cart.totalCartPrice = cart.items.reduce((sum, i) => sum + i.totalPrice, 0);
-
-        await cart.save();
-
-        return res.json({
-            message: "Item updated successfully",
-            cart
-        });
-
-    } catch (err) {
-        return res.status(500).json({ message: "Error updating cart", error: err });
     }
-});
+);
+
 
 
 // POST tạo order từ cart

@@ -1,17 +1,17 @@
-Velocity Sports Bra Designed for performance and style, the Dark Moss Velocity Sports Bra has a wide, supportive underband and open, flattering back detail for an effortlessly cool, distraction free workout
-------------------
-{
+Load More
+Power Oversized Tee   The Pirate Black Washed Power Oversize Tee is designed for a relaxed training fit. Crafted from our heavyweight seamless fabric with a garment wash to provide an silky soft handfeel
+----------------------{
   "id": "auto_generated",
-  "name": "Velocity Sports Bra",
-  "slug": "velocity-sports-bra-dark-moss",
-  "description": "Designed for both performance and style, the Dark Moss Velocity Sports Bra delivers a secure, distraction-free workout experience. Featuring a wide, supportive underband and an open, sculpted back design, it provides reliable stability while enhancing airflow and movement. Its clean, flattering silhouette makes it suitable for training sessions, studio workouts, and everyday activewear.",
-  "shortDescription": "Supportive wide-underband sports bra with an open, flattering back for a distraction-free workout.",
+  "name": "Power Oversized Tee",
+  "slug": "power-oversized-tee-pirate-black",
+  "description": "The Pirate Black Washed Power Oversize Tee is designed for a relaxed training fit. Crafted from heavyweight seamless fabric and finished with a garment wash to create an ultra-soft, silky handfeel. Built for comfort and movement during training sessions while maintaining a modern oversized silhouette.",
+  "shortDescription": "Pirate Black oversized training tee with heavyweight seamless fabric and ultra-soft garment-wash finish.",
   "brand": "ObjectId_here",
   "category": "ObjectId_here",
   "images": [
     {
-      "url": "https://example.com/images/velocity-sports-bra-dark-moss.webp",
-      "alt": "Velocity Sports Bra - Dark Moss"
+      "url": "https://example.com/images/power-oversized-tee-pirate-black.webp",
+      "alt": "Power Oversized Tee - Pirate Black"
     }
   ],
   "status": "active",

@@ -1,31 +1,88 @@
 'use client'
 import Image from 'next/image';
 import { useCart, CartItem as CartItemType } from '@/lib/CartContext';
+import { Product } from './ProductCard';
 import { motion } from 'framer-motion';
 import { FiTrash2, FiMinus, FiPlus } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
 
 interface CartItemProps {
   item: CartItemType;
 }
 
 const CartItem = ({ item }: CartItemProps) => {
-  const { updateQuantity, removeFromCart } = useCart();
+  console.log("CartItem received item:", item);
+  const { addItem, removeItem } = useCart();
 
-  const handleIncrement = () => {
-    updateQuantity(item.id, item.quantity + 1);
-  };
+  const [tempQuantity, setTempQuantity] = useState(item.quantity);
 
-  const handleDecrement = () => {
+
+
+
+  const handleIncrement = async () => {
+    addItem(1);
+    setTempQuantity(tempQuantity + 1);
+    const userData = localStorage.getItem("user");
+    const parsedUser = userData ? JSON.parse(userData) : null;
+    const cartId = parsedUser?.cartId;
+    const res = await fetch(`http://localhost:5000/cart/add/${cartId}`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: 1,
+      })
+    });
+  }
+  const handleDecrement = async () => {
+
     if (item.quantity > 1) {
-      updateQuantity(item.id, item.quantity - 1);
+      removeItem(1);
+      setTempQuantity(tempQuantity - 1);
     }
+    const userData = localStorage.getItem("user");
+    const parsedUser = userData ? JSON.parse(userData) : null;
+    const cartId = parsedUser?.cartId;
+    const res = await fetch(`http://localhost:5000/cart/remove/${cartId}/items/${item.productId}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    if (tempQuantity == 0)
+      return null;
   };
 
-  const handleRemove = () => {
-    removeFromCart(item.id);
+  const handleRemove = async () => {
+    const userData = localStorage.getItem("user");
+    const parsedUser = userData ? JSON.parse(userData) : null;
+    const cartId = parsedUser?.cartId;
+    const res = await fetch(`http://localhost:5000/cart/remove/${cartId}/items/${item.productId}?qty=${item.quantity}`, {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      }
+    });
+    removeItem(tempQuantity);
+    setTempQuantity(0);
+    return null;
   };
 
   const subtotal = item.price * item.quantity;
+
+  useEffect(() => {
+    console.log("CartItem quantity updated:", item.quantity);
+    if (item.quantity == 0) {
+      return;
+    }
+  }, [item.quantity]);
 
   return (
     <motion.div
@@ -40,7 +97,7 @@ const CartItem = ({ item }: CartItemProps) => {
         {/* Product Image */}
         <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
           <Image
-            src={item.image}
+            src={item.url}
             alt={item.name}
             fill
             className="object-cover"
@@ -56,9 +113,7 @@ const CartItem = ({ item }: CartItemProps) => {
                 <h3 className="font-semibold text-gray-900 text-lg leading-tight mb-1">
                   {item.name}
                 </h3>
-                <p className="text-xs text-accent uppercase tracking-wide">
-                  {item.category}
-                </p>
+
               </div>
               <button
                 onClick={handleRemove}
@@ -68,24 +123,33 @@ const CartItem = ({ item }: CartItemProps) => {
                 <FiTrash2 className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-gray-600 text-sm line-clamp-2">
-              {item.description}
-            </p>
+
           </div>
 
           {/* Bottom Section: Price, Quantity Controls */}
           <div className="flex justify-between items-center mt-3">
             {/* Quantity Controls */}
             <div className="flex items-center gap-3">
-              <button
-                onClick={handleDecrement}
-                className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
-                aria-label="Decrease quantity"
-              >
-                <FiMinus className="w-4 h-4 text-gray-700" />
-              </button>
+              {tempQuantity > 1 ? (
+                // Khi quantity > 1 → giảm bình thường
+                <button
+                  onClick={handleDecrement}
+                  className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  <FiMinus className="w-4 h-4 text-gray-700" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleRemove} // bạn tự đổi hàm ở đây
+                  className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+                  aria-label="Remove item"
+                >
+                  <FiMinus className="w-4 h-4 text-gray-700" />
+                </button>
+              )}
               <span className="font-semibold text-gray-900 w-8 text-center">
-                {item.quantity}
+                {tempQuantity}
               </span>
               <button
                 onClick={handleIncrement}

@@ -8,17 +8,23 @@ import { useState } from 'react';
 import { FiCheck, FiShoppingCart } from 'react-icons/fi';
 
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
+  slug: string;
   description: string;
+  shortDescription: string;
   price: number;
-  image: string;
-  images?: string[]; // Multiple images for gallery
+  brand: string;
   category: string;
-  rating: number;
-  inStock: boolean;
-  features?: string[]; // Product features list
-  specifications?: { [key: string]: string }; // Product specs
+  inStock: number;
+  images: { url: string; alt: string }[];
+  rating: {
+    avg: number;
+    count: number;
+  };
+  status: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ProductCardProps {
@@ -28,18 +34,44 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) => {
-  const { addToCart, isInCart } = useCart();
+  const { addItem, removeItem } = useCart();
   const [justAdded, setJustAdded] = useState(false);
-  const inCart = isInCart(product.id);
 
-  const handleAddToCart = () => {
-    addToCart(product);
-    setJustAdded(true);
-    
-    // Reset the "just added" state after 2 seconds
-    setTimeout(() => {
-      setJustAdded(false);
-    }, 2000);
+  const handleAddToCart = async () => {
+    console.log('Adding to cart:', product, 'Quantity:', 1);
+    if (!product) return;
+    const storedData = localStorage.getItem('user');
+    if (!storedData) {
+      alert('Please log in to add items to your cart.');
+      return;
+    }
+    const userData = JSON.parse(storedData);
+    console.log("product._id:", product._id);
+    const cartId = userData?.cartId;
+    const res = await fetch(`http://localhost:5000/cart/add/${cartId}`, {
+      method: 'POST',
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        productId: product._id,
+        name: product.name,
+        url: product.images[0].url || '',
+        price: product.price,
+        quantity: 1,
+      }),
+    });
+    if (res.ok) {
+      console.log('Added to cart successfully');
+      addItem(1);
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 5000);
+
+    } else {
+      console.error('Failed to add to cart');
+      alert('Failed to add to cart. Please try again.');
+    }
   };
 
   // List View Layout
@@ -54,11 +86,11 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
       >
         <div className="flex flex-col md:flex-row">
           {/* Product Image */}
-          <Link href={`/shopping/${product.id}`} className="md:w-1/3">
+          <Link href={`/shopping/${product._id}`} className="md:w-1/3 block">
             <div className="relative h-64 md:h-full overflow-hidden bg-white cursor-pointer flex items-center justify-center p-6">
               <Image
-                src={product.image.replace('w=500&h=500', 'w=600&h=600&q=85')}
-                alt={product.name}
+                src={product.images[0].url}
+                alt={product.images[0].alt || product.name}
                 fill
                 className="object-contain group-hover:scale-110 transition-transform duration-500"
                 unoptimized
@@ -84,19 +116,19 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
                   {[...Array(5)].map((_, i) => (
                     <svg
                       key={i}
-                      className={`w-5 h-5 ${i < product.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                      className={`w-5 h-5 ${i < product.rating.avg ? 'text-yellow-400' : 'text-gray-300'}`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
-                  <span className="text-gray-600 text-sm ml-2">({product.rating})</span>
+                  <span className="text-gray-600 text-sm ml-2">({product.rating.avg})</span>
                 </div>
               </div>
 
               {/* Product Name */}
-              <Link href={`/shopping/${product.id}`}>
+              <Link href={`../shopping/${product._id}`}>
                 <h3 className="text-2xl font-bold text-gray-900 mb-3 hover:text-accent transition-colors cursor-pointer">
                   {product.name}
                 </h3>
@@ -108,30 +140,19 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
               </p>
 
               {/* Features (if available) */}
-              {product.features && product.features.length > 0 && (
-                <ul className="space-y-2 mb-4">
-                  {product.features.slice(0, 3).map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
-                      <svg className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              )}
+
             </div>
 
             {/* Price & Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
               <div>
-                <p className="text-3xl font-bold text-accent">
-                  ${product.price.toFixed(2)}
+                <p className="text-2xl  text-accent">
+                  ${product.price}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">Free shipping</p>
               </div>
               <div className="flex gap-3">
-                <Link href={`/shopping/${product.id}`}>
+                <Link href={`/shopping/${product._id}`}>
                   <button className="px-6 py-3 rounded-xl font-semibold border-2 border-accent text-accent hover:bg-accent hover:text-white transition-all duration-300">
                     View Details
                   </button>
@@ -139,13 +160,12 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
                 <button
                   onClick={handleAddToCart}
                   disabled={!product.inStock}
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
-                    product.inStock
-                      ? justAdded
-                        ? 'bg-green-500 text-white'
-                        : 'bg-accent text-white hover:bg-accent/90 hover:scale-105 shadow-lg shadow-accent/30'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${product.inStock
+                    ? justAdded
+                      ? 'bg-green-500 text-white'
+                      : 'bg-accent text-white hover:bg-accent/90 hover:scale-105 shadow-lg shadow-accent/30'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
                 >
                   {!product.inStock ? (
                     'Unavailable'
@@ -179,10 +199,10 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
       className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group hover:-translate-y-2"
     >
       {/* Product Image */}
-      <Link href={`/shopping/${product.id}`}>
+      <Link href={`/shopping/${product._id}`}>
         <div className="relative h-72 overflow-hidden bg-gradient-to-br from-gray-50 to-white cursor-pointer flex items-center justify-center p-6">
           <Image
-            src={product.image.replace('w=500&h=500', 'w=600&h=600&q=85')}
+            src={product.images[0].url.replace('w=500&h=500', 'w=600&h=600&q=85')}
             alt={product.name}
             fill
             className="object-contain group-hover:scale-110 transition-transform duration-500"
@@ -211,7 +231,7 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
         </p>
 
         {/* Product Name */}
-        <Link href={`/shopping/${product.id}`}>
+        <Link href={`/shopping/${product._id}`}>
           <h3 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2 min-h-[3.5rem] hover:text-accent transition-colors cursor-pointer">
             {product.name}
           </h3>
@@ -227,37 +247,36 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
           {[...Array(5)].map((_, i) => (
             <svg
               key={i}
-              className={`w-5 h-5 ${i < product.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+              className={`w-5 h-5 ${i < product.rating.avg ? 'text-yellow-400' : 'text-gray-300'}`}
               fill="currentColor"
               viewBox="0 0 20 20"
             >
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
           ))}
-          <span className="text-gray-600 text-sm ml-2 font-medium">({product.rating})</span>
+          <span className="text-gray-600 text-sm ml-2 font-medium">({product.rating.avg})</span>
         </div>
 
         {/* Price & Button */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div>
             <p className="text-2xl font-bold bg-gradient-to-r from-accent to-rose-600 bg-clip-text text-transparent">
-              ${product.price.toFixed(2)}
+              {product.price}
             </p>
           </div>
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock}
-            className={`px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${
-              product.inStock
-                ? justAdded
-                  ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
-                  : inCart
-                  ? 'bg-accent/90 text-white hover:bg-accent hover:scale-105 shadow-lg shadow-accent/30'
-                  : 'bg-gradient-to-r from-accent to-rose-600 text-white hover:scale-105 shadow-lg shadow-accent/30'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
+          // className={`px-6 py-2.5 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 ${product.inStock
+          //   ? justAdded
+          //     ? 'bg-green-500 text-white shadow-lg shadow-green-500/30'
+          //     : inCart
+          //       ? 'bg-accent/90 text-white hover:bg-accent hover:scale-105 shadow-lg shadow-accent/30'
+          //       : 'bg-gradient-to-r from-accent to-rose-600 text-white hover:scale-105 shadow-lg shadow-accent/30'
+          //   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          //   }`}
           >
-            {!product.inStock ? (
+            {/* {!product.inStock ? (
               'Unavailable'
             ) : justAdded ? (
               <>
@@ -274,7 +293,7 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
                 <FiShoppingCart className="w-4 h-4" />
                 Add
               </>
-            )}
+            )} */}
           </button>
         </div>
       </div>

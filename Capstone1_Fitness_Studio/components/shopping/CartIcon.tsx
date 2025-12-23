@@ -4,8 +4,9 @@ import { useCart } from '@/lib/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CartIcon = () => {
-  const { getTotalItems } = useCart();
-  const totalItems = getTotalItems();
+  const cart = useCart();
+  const totalItems = cart?.totalItems ?? 0;
+
 
   return (
     <Link href="/shopping/cart">

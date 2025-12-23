@@ -1,9 +1,8 @@
 'use client'
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import ProductGrid from '@/components/shopping/ProductGrid';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fadeIn } from '@/lib/variants';
-import sportsProducts from '@/lib/productsData';
 import { FiGrid, FiList, FiFilter, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const categories = ['All', 'Clothing', 'Footwear', 'Accessories', 'Equipment'];
@@ -17,13 +16,61 @@ export default function ShoppingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("http://localhost:5000/product/get-product", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`HTTP ${res.status}: ${errorText}`);
+        }
+
+        const result = await res.json();
+        console.log("Full API response:", result);
+
+        // Adjust based on what you see in console
+        const productsArray = result.data || result.products || result;
+
+        if (!Array.isArray(productsArray)) {
+          console.error("Expected array, got:", productsArray);
+          setError("Invalid data format from server");
+          setLoading(false);
+          return;
+        }
+
+        setProducts(productsArray);
+        setLoading(false);
+      } catch (err: any) {
+        console.error("Error fetching products:", err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
 
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = sportsProducts.filter((product) => {
-      const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           product.description.toLowerCase().includes(searchQuery.toLowerCase());
+    let filtered = products.filter((product) => {
+      const matchesCategory =
+        selectedCategory === 'All' || product.category === selectedCategory;
+
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+
       return matchesCategory && matchesSearch;
     });
 
@@ -39,15 +86,17 @@ export default function ShoppingPage() {
         filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating);
+        filtered.sort(
+          (a, b) => (b.rating?.avg || 0) - (a.rating?.avg || 0)
+        );
         break;
       default:
-        // featured - keep original order
         break;
     }
 
     return filtered;
-  }, [selectedCategory, searchQuery, sortBy]);
+  }, [products, selectedCategory, searchQuery, sortBy]);
+
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
@@ -65,6 +114,20 @@ export default function ShoppingPage() {
     setSearchQuery(query);
     setCurrentPage(1);
   };
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl font-semibold">
+        Loading products...
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl text-red-500 font-semibold">
+        Failed to load products: {error}
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
@@ -90,7 +153,7 @@ export default function ShoppingPage() {
             Sports & Fitness Shop
           </h1>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Discover premium sports clothing, footwear, accessories, and fitness equipment. 
+            Discover premium sports clothing, footwear, accessories, and fitness equipment.
             <br />Everything you need for your active lifestyle.
           </p>
         </motion.div>
@@ -154,11 +217,10 @@ export default function ShoppingPage() {
                 onClick={() => handleCategoryChange(category)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className={`px-8 py-3 rounded-full font-semibold transition-all duration-300 shadow-md ${
-                  selectedCategory === category
-                    ? 'bg-gradient-to-r from-accent to-rose-600 text-white shadow-lg shadow-accent/50'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
-                }`}
+                className={`px-8 py-3 rounded-full font-semibold transition-all duration-300 shadow-md ${selectedCategory === category
+                  ? 'bg-gradient-to-r from-accent to-rose-600 text-white shadow-lg shadow-accent/50'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-lg'
+                  }`}
               >
                 {category}
                 {selectedCategory === category && (
@@ -210,18 +272,16 @@ export default function ShoppingPage() {
               <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-md transition-all ${
-                    viewMode === 'grid' ? 'bg-white text-accent shadow-md' : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white text-accent shadow-md' : 'text-gray-500 hover:text-gray-700'
+                    }`}
                   title="Grid View"
                 >
                   <FiGrid size={20} />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-md transition-all ${
-                    viewMode === 'list' ? 'bg-white text-accent shadow-md' : 'text-gray-500 hover:text-gray-700'
-                  }`}
+                  className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white text-accent shadow-md' : 'text-gray-500 hover:text-gray-700'
+                    }`}
                   title="List View"
                 >
                   <FiList size={20} />
@@ -293,11 +353,10 @@ export default function ShoppingPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className={`p-3 rounded-lg transition-all ${
-                currentPage === 1
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-accent hover:text-white shadow-md hover:shadow-lg'
-              }`}
+              className={`p-3 rounded-lg transition-all ${currentPage === 1
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-gray-700 hover:bg-accent hover:text-white shadow-md hover:shadow-lg'
+                }`}
             >
               <FiChevronLeft size={20} />
             </button>
@@ -309,11 +368,10 @@ export default function ShoppingPage() {
                   onClick={() => setCurrentPage(page)}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`w-12 h-12 rounded-lg font-semibold transition-all ${
-                    currentPage === page
-                      ? 'bg-gradient-to-r from-accent to-rose-600 text-white shadow-lg shadow-accent/50'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 shadow-md'
-                  }`}
+                  className={`w-12 h-12 rounded-lg font-semibold transition-all ${currentPage === page
+                    ? 'bg-gradient-to-r from-accent to-rose-600 text-white shadow-lg shadow-accent/50'
+                    : 'bg-white text-gray-700 hover:bg-gray-100 shadow-md'
+                    }`}
                 >
                   {page}
                 </motion.button>
@@ -323,11 +381,10 @@ export default function ShoppingPage() {
             <button
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className={`p-3 rounded-lg transition-all ${
-                currentPage === totalPages
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-white text-gray-700 hover:bg-accent hover:text-white shadow-md hover:shadow-lg'
-              }`}
+              className={`p-3 rounded-lg transition-all ${currentPage === totalPages
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white text-gray-700 hover:bg-accent hover:text-white shadow-md hover:shadow-lg'
+                }`}
             >
               <FiChevronRight size={20} />
             </button>
