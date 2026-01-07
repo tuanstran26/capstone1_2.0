@@ -206,10 +206,10 @@ export default function ShoppingPage() {
           animate="show"
           className="mb-8"
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
+          {/* <div className="flex items-center justify-center gap-3 mb-4">
             <FiFilter className="text-gray-500" />
             <span className="text-sm font-medium text-gray-600">Filter by Category</span>
-          </div>
+          </div> */}
           <div className="flex flex-wrap justify-center gap-3">
             {categories.map((category) => (
               <motion.button

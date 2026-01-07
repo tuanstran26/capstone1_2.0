@@ -148,9 +148,9 @@ router.delete(
 // POST tạo order từ cart
 router.post("/create-order-from-cart", ensureAuthenticated, async (req: Request, res: Response) => {
     try {
-        const { cartId, address, payingMethod, shippingFee } = req.body;
+        const { cartId, fullname, email, address, phone, payingMethod, shippingFee } = req.body;
 
-        if (!cartId || !address || !payingMethod) {
+        if (!cartId || !fullname || !email || !address || !phone || !payingMethod) {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
@@ -170,7 +170,9 @@ router.post("/create-order-from-cart", ensureAuthenticated, async (req: Request,
             return res.status(404).json({ message: "User not found for this cart" });
         }
 
-        const username = `${user.firstname} ${user.lastname}`;
+        const username = fullname || `${user.firstname} ${user.lastname}`;
+
+        const emailToUse = email || user.email;
 
         // Shipping fee mặc định
         const finalShippingFee = shippingFee || 30000;
@@ -182,7 +184,9 @@ router.post("/create-order-from-cart", ensureAuthenticated, async (req: Request,
         const newOrder = new Order({
             userId: user._id,
             username,
+            email: emailToUse,
             address,
+            phone,
             items: cart.items,
             payingMethod,
             totalCartPrice: cart.totalCartPrice,

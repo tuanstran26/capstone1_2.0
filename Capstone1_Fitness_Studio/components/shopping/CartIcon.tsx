@@ -41,7 +41,7 @@ const CartIcon = () => {
               transition={{ type: 'spring', stiffness: 500, damping: 25 }}
               className="absolute -top-2 -right-2 bg-accent text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shadow-lg"
             >
-              {totalItems > 99 ? '99+' : totalItems}
+              {/* {totalItems > 99 ? '99+' : totalItems} */}
             </motion.div>
           )}
         </AnimatePresence>

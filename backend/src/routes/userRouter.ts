@@ -7,64 +7,64 @@ const router = Router();
 
 // Tìm kiếm PT theo tên
 router.get(
-    "/trainers-search",
-    ensureAuthenticated,
-    async (req: Request, res: Response) => {
-        try {
-            const query = req.query.q as string;
+  "/trainers-search",
+  ensureAuthenticated,
+  async (req: Request, res: Response) => {
+    try {
+      const query = req.query.q as string;
 
-            if (!query) {
-                return res.status(400).json({ message: "Query is required" });
-            }
+      if (!query) {
+        return res.status(400).json({ message: "Query is required" });
+      }
 
-            // regex tìm theo firstname hoặc lastname
-            const trainers = await User.find({
-                role: "pt",
-                $or: [
-                    { firstname: { $regex: query, $options: "i" } },
-                    { lastname: { $regex: query, $options: "i" } },
-                ],
-            }).select("_id firstname lastname ptSpecialization ptExperience");
+      // regex tìm theo firstname hoặc lastname
+      const trainers = await User.find({
+        role: "pt",
+        $or: [
+          { firstname: { $regex: query, $options: "i" } },
+          { lastname: { $regex: query, $options: "i" } },
+        ],
+      }).select("_id firstname lastname ptSpecialization ptExperience");
 
-            res.json(trainers);
-        } catch (err) {
-            res.status(500).json({ message: "Error searching trainers", error: err });
-        }
+      res.json(trainers);
+    } catch (err) {
+      res.status(500).json({ message: "Error searching trainers", error: err });
     }
+  }
 );
 
 
 // Gán PT cho user
 router.post("/assign-pt", async (req: Request, res: Response) => {
-    try {
-        const { ptId, userId, ptName, userName, status } = req.body;
+  try {
+    const { ptId, userId, ptName, userName, status } = req.body;
 
-        if (!ptId || !userId || !ptName || !userName) {
-            return res.status(400).json({
-                message: "ptId, userId, ptName and userName are required",
-            });
-        }
-
-        // Create relationship
-        const relationship = await Relationship.create({
-            ptId,
-            userId,
-            ptName,
-            userName,
-            status: status ?? "pending", // default if FE không gửi
-        });
-
-        res.status(201).json({
-            message: "PT assignment created successfully",
-            relationship,
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            message: "Error creating PT assignment",
-            error: err,
-        });
+    if (!ptId || !userId || !ptName || !userName) {
+      return res.status(400).json({
+        message: "ptId, userId, ptName and userName are required",
+      });
     }
+
+    // Create relationship
+    const relationship = await Relationship.create({
+      ptId,
+      userId,
+      ptName,
+      userName,
+      status: status ?? "pending", // default if FE không gửi
+    });
+
+    res.status(201).json({
+      message: "PT assignment created successfully",
+      relationship,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Error creating PT assignment",
+      error: err,
+    });
+  }
 });
 
 
@@ -117,5 +117,22 @@ router.get("/find-user/:id", ensureAuthenticated, async (req: Request, res: Resp
 });
 
 
+router.get(
+  "/get-pts",
+  ensureAuthenticated,
+  async (req: Request, res: Response) => {
+    try {
+      const pts = await User.find({ role: "pt" }).select("-password");
+
+      return res.status(200).json(pts);
+    } catch (err) {
+      console.error("Get PT users error:", err);
+      return res.status(500).json({
+        message: "Error fetching PT users",
+        error: err,
+      });
+    }
+  }
+);
 
 export default router;

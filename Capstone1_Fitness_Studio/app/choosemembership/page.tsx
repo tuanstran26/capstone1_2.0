@@ -176,7 +176,7 @@ const ChooseMembershipPage = () => {
                                     <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
                                     <div className="flex items-end justify-center mb-4">
                                         <span className="text-4xl font-bold">
-                                            {formatPrice(plan.price)}
+                                            {plan.price}
                                         </span>
                                         <span className="text-gray-500 ml-1">/{plan.duration}</span>
                                     </div>
@@ -212,7 +212,7 @@ const ChooseMembershipPage = () => {
                     <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
                         <h3 className="text-lg font-semibold mb-4">
                             Confirm selection of {selectedPlan.name} plan (
-                            {formatPrice(selectedPlan.price)}/{selectedPlan.duration})?
+                            {selectedPlan.price}/{selectedPlan.duration})?
                         </h3>
                         <div className="flex justify-center gap-4">
                             <button

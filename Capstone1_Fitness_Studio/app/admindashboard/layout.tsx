@@ -18,6 +18,7 @@ import {
   FiX
 } from 'react-icons/fi'
 import { SiTrainerroad } from "react-icons/si";
+import { FaShoppingBag } from "react-icons/fa";
 
 
 export default function AdminDashboardLayout({
@@ -34,6 +35,7 @@ export default function AdminDashboardLayout({
     { name: 'Trainers', href: '/admindashboard/trainers', icon: FiActivity },
     { name: 'Membership Plans', href: '/admindashboard/memberships', icon: FiPackage },
     { name: 'Create Trainer', href: '/admindashboard/creatept', icon: SiTrainerroad },
+    { name: 'Orders', href: '/admindashboard/orders', icon: FaShoppingBag },
     { name: 'Financial', href: '/admindashboard/financial', icon: FiDollarSign },
     { name: 'Classes & Schedule', href: '/admindashboard/classes', icon: FiCalendar },
     { name: 'Analytics', href: '/admindashboard/analytics', icon: FiBarChart2 },

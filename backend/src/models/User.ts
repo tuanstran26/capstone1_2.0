@@ -25,7 +25,7 @@ export interface IUser extends Document {
 
   // PT fields
   ptSpecialization: string | null;
-  ptExperience: number | null;
+  ptExperience: string| null;
   ptClients: mongoose.Types.ObjectId[];
 }
 

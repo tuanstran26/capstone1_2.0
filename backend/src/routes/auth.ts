@@ -114,20 +114,43 @@ router.post(
 );
 
 // Logout
-router.post("/logout", (req: Request, res: Response) => {
-  req.logout((err) => {
+// router.post("/logout", (req: Request, res: Response) => {
+//   req.logout((err) => {
+//     if (err) return res.status(500).json({ message: "Logout failed" });
+//     res.json({ message: "Logged out successfully" });
+//   });
+// });
+
+// // Protected route example
+// router.get("/profile", (req: Request, res: Response) => {
+//   if (!req.isAuthenticated()) {
+//     return res.status(401).json({ message: "Not authenticated" });
+//   }
+//   res.json({ user: req.user });
+// });
+
+
+
+router.post("/logout", (req, res) => {
+  req.logout(err => {
     if (err) return res.status(500).json({ message: "Logout failed" });
-    res.json({ message: "Logged out successfully" });
+
+    req.session.destroy(err => {
+      if (err) {
+        return res.status(500).json({ message: "Session destroy failed" });
+      }
+
+      res.clearCookie("connect.sid", {
+        httpOnly: true,
+        secure: false,
+        sameSite: "lax",
+      });
+
+      return res.json({ message: "Logged out successfully" });
+    });
   });
 });
 
-// Protected route example
-router.get("/profile", (req: Request, res: Response) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Not authenticated" });
-  }
-  res.json({ user: req.user });
-});
 
 // Create PT user (admin only)
 router.post("/create-pt", isAdmin, async (req: Request, res: Response) => {

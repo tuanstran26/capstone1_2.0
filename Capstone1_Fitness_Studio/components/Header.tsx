@@ -69,11 +69,62 @@ const Header = ({ hideScrollNav = false }: { hideScrollNav?: boolean }) => {
     }
   }, [pathname]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    window.location.href = "/"; // Reload về trang chủ
+  // const handleLogout = () => {
+  //   localStorage.removeItem("user");
+  //   setUser(null);
+  //   window.location.href = "/"; // Reload về trang chủ
+  // };
+
+
+  // const handleLogout = async () => {
+  //   try {
+  //     await fetch("http://localhost:5000/auth/logout", {
+  //       method: "POST",
+  //       credentials: "include", // 🚨 BẮT BUỘC để gửi cookies
+  //     });
+  //   } catch (error) {
+  //     console.error("Logout error:", error);
+  //   } finally {
+  //     setUser(null);
+  //     window.location.href = "/"; // redirect
+  //   }
+  // };
+
+
+  const handleLogout = async () => {
+    try {
+      // 1️⃣ Gọi API logout (xóa session + HttpOnly cookie ở server)
+      await fetch("http://localhost:5000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // 2️⃣ Clear toàn bộ localStorage
+      localStorage.clear();
+
+      // 3️⃣ Clear toàn bộ sessionStorage (nếu có dùng)
+      sessionStorage.clear();
+
+      // 4️⃣ Xóa toàn bộ cookie có thể xóa từ JS (KHÔNG xóa được HttpOnly)
+      document.cookie.split(";").forEach((cookie) => {
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+
+        document.cookie =
+          name +
+          "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      });
+
+      // 5️⃣ Reset state
+      setUser(null);
+
+      // 6️⃣ Redirect + reload sạch
+      window.location.replace("/");
+    }
   };
+
 
   return (
     <header
@@ -83,12 +134,12 @@ const Header = ({ hideScrollNav = false }: { hideScrollNav?: boolean }) => {
 
         {/* logo */}
         <Link href='/'>
-          <Image 
+          <Image
             src='/Logo.png'
-            alt="logo" 
-            width={85} 
+            alt="logo"
+            width={85}
             height={40}
-            className="transition-all duration-300" 
+            className="transition-all duration-300"
           />
         </Link>
 
@@ -109,7 +160,7 @@ const Header = ({ hideScrollNav = false }: { hideScrollNav?: boolean }) => {
         <div className="flex items-center gap-4">
           {/* Cart Icon - visible for all users */}
           <CartIcon />
-          
+
           {/* Shopping Button - visible for all users */}
           <Link href="/shopping">
             <button className="hover:text-accent transition-all duration-300 text-base uppercase font-medium text-white flex items-center gap-2">

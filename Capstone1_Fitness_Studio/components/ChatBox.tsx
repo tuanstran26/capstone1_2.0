@@ -43,7 +43,7 @@ const ChatBox = () => {
     setMessages([
       {
         id: 'welcome',
-        text: 'Xin chào! Tôi có thể giúp gì cho bạn?',
+        text: 'Hi! I can help you with anything you need.',
         isUser: false,
         timestamp: new Date()
       }
@@ -51,22 +51,22 @@ const ChatBox = () => {
   }, [])
 
   const suggestionKeywords = [
-    'Giờ mở cửa',
-    'Các lớp tập',
-    'Giá thành viên',
-    'Huấn luyện viên',
-    'Địa chỉ',
-    'Lớp Yoga',
-    'Lớp Cardio',
-    'Lớp CrossFit',
-    'Lớp Bodybuilding',
-    'Gói Cơ bản',
-    'Gói Tiêu chuẩn',
-    'Gói VIP',
-    'Gói Platinum',
-    'Buổi tập thử',
-    'Cơ sở vật chất',
-    'Liên hệ'
+    'Opening hours',
+    'Classes',
+    'Membership prices',
+    'Personal trainers',
+    'Address',
+    'Yoga classes',
+    'Cardio classes',
+    'CrossFit classes',
+    'Bodybuilding classes',
+    'Basic package',
+    'Standard package',
+    'VIP package',
+    'Platinum package',
+    'Trial session',
+    'Facilities',
+    'Contact'
   ]
 
   const toggleChat = () => {
@@ -150,11 +150,42 @@ const ChatBox = () => {
     setMessage('')
     setIsTyping(true)
 
+    const user = localStorage.getItem('user')
+    if (!user) {
+      setMessages(prev => {
+        const filtered = prev.filter(msg => !msg.pending)
+        return [
+          ...filtered,
+          {
+            id: generateId(),
+            text: 'Please log in to use the chat feature.',
+            isUser: false,
+            timestamp: new Date()
+          }
+        ]
+      })
+      setIsTyping(false)
+      return
+    }
+    const ptId = JSON.parse(user)?.assignedPT
+    const userId = JSON.parse(user)?._id
+    const firstName = JSON.parse(user)?.firstname
+    const lastName = JSON.parse(user)?.lastname
+    const userName = firstName + ' ' + lastName
+
+
+
+    const ptInfo = await fetch(`http://localhost:5000/ai/trainer/${ptId}`, {
+      method: 'GET',
+    }).then(res => res.json())
+
+
+    const user_pt_info = { userId, userName, ptId, ptName: ptInfo.ptName }
     try {
       const response = await fetch('http://127.0.0.1:7999/fitness-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_request: userMessage.text })
+        body: JSON.stringify({ user_request: userMessage.text, user_pt_info })
       })
 
       const data = await response.json()
@@ -165,7 +196,7 @@ const ChatBox = () => {
           ...filtered,
           {
             id: generateId(),
-            text: data.llm_answer || 'Xin lỗi, tôi không hiểu câu hỏi của bạn.',
+            text: data.llm_answer || 'Sorry, I don\'t understand your question.',
             isUser: false,
             timestamp: new Date()
           }
@@ -180,7 +211,7 @@ const ChatBox = () => {
           ...filtered,
           {
             id: generateId(),
-            text: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.',
+            text: 'Sorry, an error occurred. Please try again later.',
             isUser: false,
             timestamp: new Date()
           }
@@ -227,7 +258,7 @@ const ChatBox = () => {
       <button
         onClick={toggleChat}
         className="bg-accent hover:bg-accent/90 text-white rounded-full p-5 shadow-lg transition-all duration-300"
-        aria-label={isOpen ? 'Đóng chat' : 'Mở chat'}
+        aria-label={isOpen ? 'Close chat' : 'Open chat'}
       >
         {isOpen ? <FaTimes size={35} /> : <FaComments size={35} />}
       </button>
@@ -242,13 +273,13 @@ const ChatBox = () => {
           >
             <div className="bg-accent text-white p-4 flex justify-between items-center">
               <div>
-                <h3 className="font-bold">Hỗ trợ trực tuyến</h3>
-                <p className="text-sm opacity-90">Chúng tôi sẵn sàng giúp đỡ bạn</p>
+                <h3 className="font-bold">Online Assist</h3>
+                <p className="text-sm opacity-90">We are ready to help you</p>
               </div>
               <button
                 onClick={toggleInfo}
                 className="text-white hover:text-gray-200 transition-colors"
-                aria-label="Thông tin liên hệ"
+                aria-label="Contact information"
               >
                 <FaInfoCircle size={20} />
               </button>
@@ -278,16 +309,15 @@ const ChatBox = () => {
                 <div key={msg.id} className={`mb-3 ${msg.isUser ? 'text-right' : 'text-left'}`}>
                   <div className="flex flex-col">
                     <div
-                      className={`inline-block p-3 rounded-lg message-bubble ${
-                        msg.isUser
-                          ? 'bg-accent text-white rounded-br-none'
-                          : 'bg-gray-200 text-gray-800 rounded-bl-none'
-                      } ${msg.pending ? 'animate-pulse' : ''}`}
+                      className={`inline-block p-3 rounded-lg message-bubble ${msg.isUser
+                        ? 'bg-accent text-white rounded-br-none'
+                        : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                        } ${msg.pending ? 'animate-pulse' : ''}`}
                     >
                       {msg.pending ? (
                         <div className="flex items-center">
                           <FaSpinner className="animate-spin mr-2" />
-                          <span>Đang trả lời...</span>
+                          <span>Answering...</span>
                         </div>
                       ) : (
                         msg.text
@@ -304,7 +334,7 @@ const ChatBox = () => {
               <button
                 onClick={scrollToBottom}
                 className="absolute bottom-20 right-4 bg-accent text-white rounded-full p-2 shadow-md"
-                aria-label="Cuộn xuống"
+                aria-label="Scroll to bottom"
               >
                 <FaArrowUp className="transform rotate-180" />
               </button>
@@ -319,7 +349,7 @@ const ChatBox = () => {
                     value={message}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
-                    placeholder="Nhập tin nhắn..."
+                    placeholder="Enter message..."
                     className="w-full border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-accent"
                     disabled={isTyping}
                   />
@@ -329,9 +359,8 @@ const ChatBox = () => {
                       {suggestions.map((suggestion, index) => (
                         <div
                           key={suggestion.id}
-                          className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                            index === activeSuggestion ? 'bg-gray-100' : ''
-                          }`}
+                          className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${index === activeSuggestion ? 'bg-gray-100' : ''
+                            }`}
                           onClick={() => handleSuggestionClick(suggestion.text)}
                         >
                           {suggestion.text}
@@ -342,11 +371,10 @@ const ChatBox = () => {
                 </div>
                 <button
                   type="submit"
-                  className={`bg-accent text-white rounded-r-lg px-4 py-2 ${
-                    isTyping ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent/90'
-                  }`}
+                  className={`bg-accent text-white rounded-r-lg px-4 py-2 ${isTyping ? 'opacity-50 cursor-not-allowed' : 'hover:bg-accent/90'
+                    }`}
                   disabled={isTyping}
-                  aria-label="Gửi tin nhắn"
+                  aria-label="Send message"
                 >
                   <FaPaperPlane />
                 </button>

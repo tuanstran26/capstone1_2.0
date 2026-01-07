@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from 'react';
-import { FaCalendarAlt, FaDumbbell, FaUserFriends, FaChartLine, FaBars, FaTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaDumbbell, FaUserFriends, FaChartLine, FaBars, FaTimes, FaShoppingBag } from 'react-icons/fa';
 import { useMembership } from '../../hooks/useMembership';
 
 export default function DashboardLayout({
@@ -17,7 +17,7 @@ export default function DashboardLayout({
     <div className="flex min-h-screen bg-primary-200">
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
-        <button 
+        <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 rounded-md bg-accent text-white hover:bg-accent/90 transition-colors"
         >
@@ -26,16 +26,15 @@ export default function DashboardLayout({
       </div>
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-primary-300 shadow-2xl transform ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
+      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-primary-300 shadow-2xl transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 transition-transform duration-300 ease-in-out`}>
         <div className="flex flex-col h-full">
           {/* Logo and user info */}
           <div className="p-4 border-b border-primary-100">
             <Link href="/" className="flex items-center mb-4">
               <span className="text-xl font-bold text-accent">Fitness Studio</span>
             </Link>
-            
+
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center font-bold">FS</div>
               <div>
@@ -47,22 +46,27 @@ export default function DashboardLayout({
 
           {/* Navigation links */}
           <nav className="flex-1 p-4 space-y-1">
-            <Link href="/dashboard" 
+            <Link href="/dashboard"
               className="flex items-center p-3 rounded-md hover:bg-primary-100 text-gray-200 hover:text-accent transition-colors">
               <FaChartLine className="mr-3" />
               <span>Overview</span>
             </Link>
-            <Link href="/dashboard/schedule" 
+            <Link href="/dashboard/schedule"
               className="flex items-center p-3 rounded-md hover:bg-primary-100 text-gray-200 hover:text-accent transition-colors">
               <FaCalendarAlt className="mr-3" />
               <span>Training Schedule</span>
             </Link>
-            <Link href="/dashboard/trainers" 
+            <Link href="/dashboard/trainers"
               className="flex items-center p-3 rounded-md hover:bg-primary-100 text-gray-200 hover:text-accent transition-colors">
               <FaUserFriends className="mr-3" />
               <span>Trainers</span>
             </Link>
-            <Link href="/dashboard/progress" 
+            <Link href="/dashboard/orders"
+              className="flex items-center p-3 rounded-md hover:bg-primary-100 text-gray-200 hover:text-accent transition-colors">
+              <FaShoppingBag className="mr-3" />
+              <span>Orders</span>
+            </Link>
+            <Link href="/dashboard/progress"
               className="flex items-center p-3 rounded-md hover:bg-primary-100 text-gray-200 hover:text-accent transition-colors">
               <FaDumbbell className="mr-3" />
               <span>Progress Tracking</span>
@@ -71,7 +75,7 @@ export default function DashboardLayout({
 
           {/* Footer */}
           <div className="p-4 border-t border-primary-100">
-            <Link href="/" 
+            <Link href="/"
               className="flex items-center p-2 text-sm text-gray-300 hover:text-accent transition-colors">
               Back to Home
             </Link>
@@ -88,7 +92,7 @@ export default function DashboardLayout({
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
