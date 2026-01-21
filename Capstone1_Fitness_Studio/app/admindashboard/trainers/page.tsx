@@ -220,11 +220,29 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FiSearch, FiUser } from 'react-icons/fi'
+import { 
+  FiSearch, 
+  FiUser, 
+  FiUsers, 
+  FiActivity, 
+  FiAward, 
+  FiTrash2, 
+  FiEye, 
+  FiX, 
+  FiMail, 
+  FiPhone,
+  FiFilter,
+  FiChevronLeft,
+  FiChevronRight,
+  FiStar,
+  FiBriefcase,
+  FiTarget,
+  FiUserPlus
+} from 'react-icons/fi'
 
 interface Client {
-  userId: string
-  name: string
+  oderId: string
+  odername: string
 }
 
 interface Trainer {
@@ -232,15 +250,25 @@ interface Trainer {
   firstname: string
   lastname: string
   email: string
+  phonenumber?: string
+  gender?: string
   ptSpecialization?: string | null
   ptExperience?: string | null
   ptClients?: Client[]
+  createdAt?: string
 }
 
 export default function TrainersPage() {
   const [trainers, setTrainers] = useState<Trainer[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [specializationFilter, setSpecializationFilter] = useState('all')
+  const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null)
+  const [showModal, setShowModal] = useState(false)
+  
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const trainersPerPage = 6
 
   const fetchTrainers = async () => {
     try {
@@ -257,118 +285,464 @@ export default function TrainersPage() {
     }
   }
 
+  const deleteTrainer = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this trainer? This action cannot be undone.')) return
+
+    try {
+      const res = await fetch(`http://localhost:5000/admin/pts/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      if (res.ok) {
+        setTrainers(trainers.filter(t => t._id !== id))
+        setShowModal(false)
+        setSelectedTrainer(null)
+      } else {
+        const errData = await res.json()
+        alert(`Delete failed: ${errData.message}`)
+      }
+    } catch (err) {
+      console.error('Error deleting trainer:', err)
+    }
+  }
+
   useEffect(() => {
     fetchTrainers()
   }, [])
 
-  const filteredTrainers = trainers.filter((pt) =>
-    `${pt.firstname} ${pt.lastname} ${pt.email}`
+  // Get unique specializations
+  const specializations = [...new Set(trainers.map(t => t.ptSpecialization).filter(Boolean))]
+
+  // Filter trainers
+  const filteredTrainers = trainers.filter((pt) => {
+    const matchesSearch = `${pt.firstname} ${pt.lastname} ${pt.email}`
       .toLowerCase()
       .includes(search.toLowerCase())
-  )
+    const matchesSpec = specializationFilter === 'all' || pt.ptSpecialization === specializationFilter
+    
+    return matchesSearch && matchesSpec
+  })
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTrainers.length / trainersPerPage)
+  const startIndex = (currentPage - 1) * trainersPerPage
+  const paginatedTrainers = filteredTrainers.slice(startIndex, startIndex + trainersPerPage)
+
+  // Stats
+  const totalTrainers = trainers.length
+  const totalClients = trainers.reduce((sum, t) => sum + (t.ptClients?.length || 0), 0)
+  const avgClientsPerTrainer = totalTrainers > 0 ? (totalClients / totalTrainers).toFixed(1) : '0'
+  const trainersWithClients = trainers.filter(t => t.ptClients && t.ptClients.length > 0).length
+
+  const openTrainerModal = (trainer: Trainer) => {
+    setSelectedTrainer(trainer)
+    setShowModal(true)
+  }
+
+  const getExperienceColor = (exp: string | null | undefined) => {
+    if (!exp) return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+    const years = parseInt(exp)
+    if (years >= 5) return 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+    if (years >= 3) return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+    return 'bg-green-500/20 text-green-400 border-green-500/30'
+  }
+
+  const getSpecializationColor = (spec: string | null | undefined) => {
+    const colors: { [key: string]: string } = {
+      'Weight Loss': 'from-red-500 to-orange-500',
+      'Muscle Building': 'from-blue-500 to-indigo-500',
+      'Yoga': 'from-purple-500 to-pink-500',
+      'Cardio': 'from-green-500 to-emerald-500',
+      'CrossFit': 'from-amber-500 to-yellow-500',
+      'Boxing': 'from-red-600 to-red-500',
+      'Pilates': 'from-pink-500 to-rose-500',
+    }
+    return colors[spec || ''] || 'from-accent to-accent/80'
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-white">
-          Trainer Management
-        </h1>
-        <span className="text-gray-400">
-          Total: {filteredTrainers.length}
-        </span>
+        <div>
+          <h1 className="text-3xl font-bold text-white">Trainer Management</h1>
+          <p className="text-gray-400 mt-1">Manage your fitness trainers and their clients</p>
+        </div>
+        <div className="text-sm text-gray-400">
+          Total: <span className="text-white font-semibold">{totalTrainers}</span> trainers
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="bg-primary-300 p-4 rounded-lg border border-primary-100 shadow">
-        <div className="relative max-w-md">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search trainer by name or email..."
-            className="w-full pl-10 pr-4 py-2 bg-primary-200 border border-primary-100 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/30"
-          />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 rounded-xl p-4 border border-blue-500/20 hover:scale-[1.02] transition-transform">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Total Trainers</p>
+              <p className="text-2xl font-bold text-white mt-1">{totalTrainers}</p>
+            </div>
+            <div className="bg-blue-500/20 p-3 rounded-xl">
+              <FiActivity className="h-6 w-6 text-blue-400" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 rounded-xl p-4 border border-green-500/20 hover:scale-[1.02] transition-transform">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Total Clients</p>
+              <p className="text-2xl font-bold text-white mt-1">{totalClients}</p>
+            </div>
+            <div className="bg-green-500/20 p-3 rounded-xl">
+              <FiUsers className="h-6 w-6 text-green-400" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-500/10 to-pink-600/10 rounded-xl p-4 border border-purple-500/20 hover:scale-[1.02] transition-transform">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Avg Clients/Trainer</p>
+              <p className="text-2xl font-bold text-white mt-1">{avgClientsPerTrainer}</p>
+            </div>
+            <div className="bg-purple-500/20 p-3 rounded-xl">
+              <FiTarget className="h-6 w-6 text-purple-400" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-amber-500/10 to-orange-600/10 rounded-xl p-4 border border-amber-500/20 hover:scale-[1.02] transition-transform">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-400">Active Trainers</p>
+              <p className="text-2xl font-bold text-white mt-1">{trainersWithClients}</p>
+            </div>
+            <div className="bg-amber-500/20 p-3 rounded-xl">
+              <FiUserPlus className="h-6 w-6 text-amber-400" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search & Filters */}
+      <div className="bg-primary-300 p-4 rounded-xl border border-primary-100 shadow-xl">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search */}
+          <div className="relative flex-1">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setCurrentPage(1) }}
+              placeholder="Search by name or email..."
+              className="w-full pl-10 pr-4 py-2.5 bg-primary-200 border border-primary-100 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all"
+            />
+          </div>
+          
+          {/* Specialization Filter */}
+          <div className="flex items-center gap-2">
+            <FiFilter className="text-gray-400" />
+            <select
+              value={specializationFilter}
+              onChange={(e) => { setSpecializationFilter(e.target.value); setCurrentPage(1) }}
+              className="px-4 py-2.5 bg-primary-200 border border-primary-100 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all"
+            >
+              <option value="all">All Specializations</option>
+              {specializations.map(spec => (
+                <option key={spec} value={spec || ''}>{spec}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Trainer List */}
       {loading ? (
-        <div className="text-center text-gray-400">
-          Loading trainers...
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-accent"></div>
         </div>
       ) : filteredTrainers.length === 0 ? (
-        <div className="text-center text-gray-400">
-          No trainers found
+        <div className="text-center py-12 bg-primary-300 rounded-xl border border-primary-100">
+          <FiActivity className="mx-auto h-12 w-12 text-gray-500" />
+          <p className="mt-4 text-gray-400">No trainers found matching your criteria</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {filteredTrainers.map((pt) => (
-            <div
-              key={pt._id}
-              className="bg-primary-300 border border-primary-100 rounded-xl p-5 shadow hover:shadow-lg transition"
-            >
-              <div className="flex gap-6">
-                {/* Avatar */}
-                <div className="w-24 h-24 rounded-full bg-primary-200 flex items-center justify-center text-accent text-4xl flex-shrink-0">
-                  <FiUser />
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Basic info */}
-                  <div>
-                    <p className="text-2xl font-semibold text-white">
-                      {pt.firstname} {pt.lastname}
-                    </p>
-                    <p className="text-gray-400 text-sm">
-                      {pt.email}
-                    </p>
-
-                    <div className="mt-3 space-y-1 text-sm text-gray-300">
-                      <p>
-                        <span className="text-gray-400 font-medium">
-                          Specialization:
-                        </span>{' '}
-                        {pt.ptSpecialization || 'N/A'}
-                      </p>
-                      <p>
-                        <span className="text-gray-400 font-medium">
-                          Experience:
-                        </span>{' '}
-                        {pt.ptExperience || 'N/A'}
-                      </p>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {paginatedTrainers.map((pt) => (
+              <div
+                key={pt._id}
+                className="bg-primary-300 border border-primary-100 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group"
+              >
+                {/* Card Header with Gradient */}
+                <div className={`h-24 bg-gradient-to-r ${getSpecializationColor(pt.ptSpecialization)} relative`}>
+                  <div className="absolute inset-0 bg-black/20"></div>
+                  <div className="absolute -bottom-10 left-5">
+                    <div className="w-20 h-20 rounded-xl bg-primary-300 border-4 border-primary-300 flex items-center justify-center text-2xl font-bold text-white shadow-lg bg-gradient-to-br from-primary-200 to-primary-300">
+                      {pt.firstname?.charAt(0)}{pt.lastname?.charAt(0)}
                     </div>
                   </div>
-
-                  {/* Clients list */}
-                  <div className="flex flex-col justify-start">
-                    <p className="text-gray-400 font-medium mb-2">
-                      Clients ({pt.ptClients?.length || 0})
-                    </p>
-
-                    {pt.ptClients && pt.ptClients.length > 0 ? (
-                      <ul className="space-y-1 text-sm text-white max-h-32 overflow-y-auto">
-                        {pt.ptClients.map((client) => (
-                          <li
-                            key={client.userId}
-                            className="px-3 py-1 rounded bg-primary-600/40"
-                          >
-                            {client.name}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <span className="text-gray-500 text-sm">
-                        No clients
+                  
+                  {/* Actions */}
+                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => openTrainerModal(pt)}
+                      className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-white transition-colors"
+                      title="View Details"
+                    >
+                      <FiEye className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => deleteTrainer(pt._id)}
+                      className="p-2 bg-red-500/50 hover:bg-red-500/70 backdrop-blur-sm rounded-lg text-white transition-colors"
+                      title="Delete Trainer"
+                    >
+                      <FiTrash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Card Content */}
+                <div className="pt-12 px-5 pb-5">
+                  <h3 className="text-lg font-semibold text-white">
+                    {pt.firstname} {pt.lastname}
+                  </h3>
+                  <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
+                    <FiMail className="w-3 h-3" />
+                    {pt.email}
+                  </p>
+                  
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {pt.ptSpecialization && (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-accent/20 text-accent border border-accent/30">
+                        <FiBriefcase className="w-3 h-3 mr-1" />
+                        {pt.ptSpecialization}
                       </span>
                     )}
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${getExperienceColor(pt.ptExperience)}`}>
+                      <FiAward className="w-3 h-3 mr-1" />
+                      {pt.ptExperience || 'N/A'}
+                    </span>
                   </div>
+                  
+                  {/* Clients */}
+                  <div className="mt-4 pt-4 border-t border-primary-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-400">Clients</span>
+                      <span className="text-sm font-semibold text-white">{pt.ptClients?.length || 0}</span>
+                    </div>
+                    
+                    {pt.ptClients && pt.ptClients.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {pt.ptClients.slice(0, 3).map((client, idx) => (
+                          <span
+                            key={client.oderId || idx}
+                            className="px-2 py-1 text-xs bg-primary-200 rounded-md text-gray-300"
+                          >
+                            {client.odername}
+                          </span>
+                        ))}
+                        {pt.ptClients.length > 3 && (
+                          <span className="px-2 py-1 text-xs bg-primary-200 rounded-md text-accent">
+                            +{pt.ptClients.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between bg-primary-300 rounded-xl p-4 border border-primary-100">
+              <p className="text-sm text-gray-400">
+                Showing <span className="text-white font-medium">{startIndex + 1}</span> to{' '}
+                <span className="text-white font-medium">{Math.min(startIndex + trainersPerPage, filteredTrainers.length)}</span> of{' '}
+                <span className="text-white font-medium">{filteredTrainers.length}</span> trainers
+              </p>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 bg-primary-200 hover:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors"
+                >
+                  <FiChevronLeft className="w-5 h-5" />
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).slice(
+                  Math.max(0, currentPage - 3),
+                  Math.min(totalPages, currentPage + 2)
+                ).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                      currentPage === page
+                        ? 'bg-accent text-white'
+                        : 'bg-primary-200 hover:bg-primary-100 text-gray-300'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 bg-primary-200 hover:bg-primary-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors"
+                >
+                  <FiChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Trainer Detail Modal */}
+      {showModal && selectedTrainer && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-primary-300 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-primary-100 shadow-2xl">
+            {/* Modal Header */}
+            <div className={`h-32 bg-gradient-to-r ${getSpecializationColor(selectedTrainer.ptSpecialization)} relative`}>
+              <div className="absolute inset-0 bg-black/20"></div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-white transition-colors"
+              >
+                <FiX className="w-5 h-5" />
+              </button>
+              <div className="absolute -bottom-12 left-6">
+                <div className="w-24 h-24 rounded-2xl bg-primary-300 border-4 border-primary-300 flex items-center justify-center text-3xl font-bold text-white shadow-xl bg-gradient-to-br from-primary-200 to-primary-300">
+                  {selectedTrainer.firstname?.charAt(0)}{selectedTrainer.lastname?.charAt(0)}
                 </div>
               </div>
             </div>
-          ))}
+            
+            {/* Modal Content */}
+            <div className="pt-16 px-6 pb-6 space-y-6">
+              {/* Trainer Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-white">
+                    {selectedTrainer.firstname} {selectedTrainer.lastname}
+                  </h3>
+                  <p className="text-gray-400 mt-1">{selectedTrainer.email}</p>
+                </div>
+                <div className="flex gap-2">
+                  {selectedTrainer.ptSpecialization && (
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-accent/20 text-accent border border-accent/30">
+                      {selectedTrainer.ptSpecialization}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Info Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-primary-200/50 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-500/20 p-2 rounded-lg">
+                      <FiMail className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Email</p>
+                      <p className="text-white font-medium">{selectedTrainer.email}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-primary-200/50 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-green-500/20 p-2 rounded-lg">
+                      <FiPhone className="w-5 h-5 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Phone</p>
+                      <p className="text-white font-medium">{selectedTrainer.phonenumber || 'Not provided'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-primary-200/50 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-purple-500/20 p-2 rounded-lg">
+                      <FiBriefcase className="w-5 h-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Specialization</p>
+                      <p className="text-white font-medium">{selectedTrainer.ptSpecialization || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-primary-200/50 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-amber-500/20 p-2 rounded-lg">
+                      <FiAward className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400">Experience</p>
+                      <p className="text-white font-medium">{selectedTrainer.ptExperience || 'Not specified'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Clients Section */}
+              <div className="bg-gradient-to-br from-accent/10 to-accent/5 rounded-xl p-5 border border-accent/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold text-white">Clients</h4>
+                  <span className="px-3 py-1 bg-accent/20 rounded-full text-accent text-sm font-medium">
+                    {selectedTrainer.ptClients?.length || 0} clients
+                  </span>
+                </div>
+                
+                {selectedTrainer.ptClients && selectedTrainer.ptClients.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {selectedTrainer.ptClients.map((client, idx) => (
+                      <div
+                        key={client.oderId || idx}
+                        className="flex items-center gap-2 bg-primary-200/50 rounded-lg p-3"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-white text-xs font-medium">
+                          {client.odername?.charAt(0) || 'C'}
+                        </div>
+                        <span className="text-sm text-white truncate">{client.odername}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <FiUsers className="mx-auto h-10 w-10 text-gray-500" />
+                    <p className="mt-2 text-gray-400">No clients assigned yet</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-primary-300 border-t border-primary-100 p-4 flex justify-end gap-3">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-primary-200 hover:bg-primary-100 rounded-lg text-white transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => deleteTrainer(selectedTrainer._id)}
+                className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-lg text-red-400 transition-colors flex items-center gap-2"
+              >
+                <FiTrash2 className="w-4 h-4" />
+                Delete Trainer
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
