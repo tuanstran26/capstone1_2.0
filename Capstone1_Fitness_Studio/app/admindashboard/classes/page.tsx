@@ -1,447 +1,397 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { 
-  FiPlus, 
-  FiEdit, 
-  FiTrash2, 
-  FiCalendar, 
-  FiClock, 
   FiUsers,
-  FiMapPin,
-  FiFilter,
+  FiCalendar,
   FiSearch,
-  FiChevronLeft,
-  FiChevronRight
+  FiMail,
+  FiPhone,
+  FiAward,
+  FiBriefcase,
+  FiStar,
+  FiUserCheck
 } from 'react-icons/fi'
+import { MdFitnessCenter } from 'react-icons/md'
 
-// Sample data
-const classes = [
-  {
-    id: 1,
-    name: 'Basic Yoga',
-    trainer: 'Sofia Wilson',
-    capacity: 20,
-    enrolled: 15,
-    schedule: {
-      days: ['Mon', 'Wed', 'Fri'],
-      time: '08:00 - 09:00'
-    },
-    location: 'Room 2',
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'Cardio HIIT',
-    trainer: 'David Johnson',
-    capacity: 15,
-    enrolled: 12,
-    schedule: {
-      days: ['Tue', 'Thu'],
-      time: '17:30 - 18:30'
-    },
-    location: 'Room 1',
-    status: 'active'
-  },
-  {
-    id: 3,
-    name: 'Pilates',
-    trainer: 'Rosy Adams',
-    capacity: 12,
-    enrolled: 8,
-    schedule: {
-      days: ['Mon', 'Wed'],
-      time: '10:15 - 11:15'
-    },
-    location: 'Room 3',
-    status: 'active'
-  },
-  {
-    id: 4,
-    name: 'Zumba',
-    trainer: 'Matt Smith',
-    capacity: 25,
-    enrolled: 22,
-    schedule: {
-      days: ['Tue', 'Thu', 'Sat'],
-      time: '19:00 - 20:00'
-    },
-    location: 'Room 1',
-    status: 'active'
-  },
-  {
-    id: 5,
-    name: 'Basic Bodybuilding',
-    trainer: 'David Johnson',
-    capacity: 10,
-    enrolled: 6,
-    schedule: {
-      days: ['Mon', 'Wed', 'Fri'],
-      time: '16:00 - 17:00'
-    },
-    location: 'Weight Room',
-    status: 'inactive'
-  }
-]
+interface Trainer {
+  _id: string;
+  email: string;
+  firstname: string;
+  lastname: string;
+  phonenumber?: string;
+  ptSpecialization?: string;
+  ptExperience?: string;
+  ptClients?: Array<{ userId: string; name: string; _id: string }>;
+  createdAt: string;
+  updatedAt: string;
+}
 
-const rooms = [
-  { id: 1, name: 'Room 1', capacity: 25, equipment: 'Sound system, mirrors, exercise mats' },
-  { id: 2, name: 'Room 2', capacity: 20, equipment: 'Sound system, mirrors, exercise mats, yoga equipment' },
-  { id: 3, name: 'Room 3', capacity: 15, equipment: 'Sound system, mirrors, exercise mats, pilates balls' },
-  { id: 4, name: 'Weight Room', capacity: 15, equipment: 'Free weights, exercise machines' },
-]
-
-// Sample schedule data
-const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const timeSlots = [
-  '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', 
-  '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', 
-  '18:00', '19:00', '20:00', '21:00'
-];
+interface Schedule {
+  _id: string;
+  scheduleName: string;
+  scheduleDate: string;
+  shift: string;
+  ptId: string;
+  ptName: string;
+  userId: string;
+  userName: string;
+  createdAt: string;
+}
 
 export default function ClassesPage() {
-  const [activeTab, setActiveTab] = useState('classes')
+  const [trainers, setTrainers] = useState<Trainer[]>([])
+  const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null)
+  const [trainerSchedule, setTrainerSchedule] = useState<Schedule[]>([])
+  const [loading, setLoading] = useState(true)
+  const [scheduleLoading, setScheduleLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [showAddClassModal, setShowAddClassModal] = useState(false)
-  const [currentRoom, setCurrentRoom] = useState(rooms[0].id)
+  const [activeTab, setActiveTab] = useState<'trainers' | 'schedule'>('trainers')
   
-  // Filter classes
-  const filteredClasses = classes.filter(cls => {
-    const matchesSearch = 
-      cls.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      cls.trainer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cls.location.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || cls.status === statusFilter
+  useEffect(() => {
+    const fetchTrainers = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch('http://localhost:5000/admin/pts', { credentials: 'include' })
+        
+        if (res.ok) {
+          const data = await res.json()
+          setTrainers(data || [])
+        }
+      } catch (err) {
+        console.error('Error fetching trainers:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
     
-    return matchesSearch && matchesStatus
+    fetchTrainers()
+  }, [])
+  
+  // Fetch schedule when trainer is selected
+  const fetchTrainerSchedule = async (trainerId: string) => {
+    try {
+      setScheduleLoading(true)
+      const res = await fetch(`http://localhost:5000/schedule/trainer/${trainerId}`, { credentials: 'include' })
+      
+      if (res.ok) {
+        const data = await res.json()
+        setTrainerSchedule(data || [])
+      } else {
+        setTrainerSchedule([])
+      }
+    } catch (err) {
+      console.error('Error fetching schedule:', err)
+      setTrainerSchedule([])
+    } finally {
+      setScheduleLoading(false)
+    }
+  }
+  
+  const handleSelectTrainer = (trainer: Trainer) => {
+    setSelectedTrainer(trainer)
+    fetchTrainerSchedule(trainer._id)
+    setActiveTab('schedule')
+  }
+  
+  // Filter trainers
+  const filteredTrainers = trainers.filter(trainer => {
+    const fullName = `${trainer.firstname} ${trainer.lastname}`.toLowerCase()
+    return fullName.includes(searchTerm.toLowerCase()) ||
+           trainer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (trainer.ptSpecialization?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   })
+  
+  // Stats
+  const totalTrainers = trainers.length
+  const totalClients = trainers.reduce((sum, t) => {
+    const clientCount = Array.isArray(t.ptClients) ? t.ptClients.length : 0
+    return sum + clientCount
+  }, 0)
+  const avgClientsPerTrainer = totalTrainers > 0 && !isNaN(totalClients) 
+    ? Math.round(totalClients / totalTrainers) 
+    : 0
+  
+  // Specializations count
+  const specializations = trainers.reduce((acc, t) => {
+    const spec = t.ptSpecialization || 'General'
+    acc[spec] = (acc[spec] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Class & Schedule Management</h1>
-        <button 
-          className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md"
-          onClick={() => setShowAddClassModal(true)}
-        >
-          <FiPlus className="h-5 w-5" />
-          <span>Add New Class</span>
-        </button>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-900/50 to-primary-200 rounded-xl p-6 border border-blue-500/20">
+        <div className="flex items-center gap-4">
+          <div className="bg-blue-500/20 p-4 rounded-xl border border-blue-500/30">
+            <MdFitnessCenter className="text-3xl text-blue-400" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Trainers & Schedule</h1>
+            <p className="text-gray-400">Manage personal trainers and their schedules</p>
+          </div>
+        </div>
       </div>
       
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b border-gray-200">
-          <nav className="flex -mb-px">
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-primary-300 rounded-xl p-4 border border-primary-100 flex items-center gap-4">
+          <div className="bg-blue-500/20 p-3 rounded-lg border border-blue-500/30">
+            <FiUsers className="text-blue-400 text-xl" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{totalTrainers}</p>
+            <p className="text-sm text-gray-400">Total Trainers</p>
+          </div>
+        </div>
+        
+        <div className="bg-primary-300 rounded-xl p-4 border border-primary-100 flex items-center gap-4">
+          <div className="bg-green-500/20 p-3 rounded-lg border border-green-500/30">
+            <FiUserCheck className="text-green-400 text-xl" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{totalClients}</p>
+            <p className="text-sm text-gray-400">Total Clients</p>
+          </div>
+        </div>
+        
+        <div className="bg-primary-300 rounded-xl p-4 border border-primary-100 flex items-center gap-4">
+          <div className="bg-purple-500/20 p-3 rounded-lg border border-purple-500/30">
+            <FiStar className="text-purple-400 text-xl" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{avgClientsPerTrainer}</p>
+            <p className="text-sm text-gray-400">Avg Clients/Trainer</p>
+          </div>
+        </div>
+        
+        <div className="bg-primary-300 rounded-xl p-4 border border-primary-100 flex items-center gap-4">
+          <div className="bg-accent/20 p-3 rounded-lg border border-accent/30">
+            <FiAward className="text-accent text-xl" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-white">{Object.keys(specializations).length}</p>
+            <p className="text-sm text-gray-400">Specializations</p>
+          </div>
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className="bg-primary-300 rounded-xl border border-primary-100 overflow-hidden">
+        {/* Tabs */}
+        <div className="border-b border-primary-100">
+          <nav className="flex">
             <button
-              onClick={() => setActiveTab('classes')}
-              className={`${
-                activeTab === 'classes'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+              onClick={() => setActiveTab('trainers')}
+              className={`px-6 py-4 text-sm font-medium transition-colors ${
+                activeTab === 'trainers'
+                  ? 'border-b-2 border-accent text-accent'
+                  : 'text-gray-400 hover:text-white'
+              }`}
             >
-              Class List
+              <FiUsers className="inline mr-2" />
+              Trainer List
             </button>
             <button
               onClick={() => setActiveTab('schedule')}
-              className={`${
+              className={`px-6 py-4 text-sm font-medium transition-colors ${
                 activeTab === 'schedule'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
+                  ? 'border-b-2 border-accent text-accent'
+                  : 'text-gray-400 hover:text-white'
+              }`}
             >
-              Room Schedule
-            </button>
-            <button
-              onClick={() => setActiveTab('rooms')}
-              className={`${
-                activeTab === 'rooms'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              } whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm`}
-            >
-              Room Management
+              <FiCalendar className="inline mr-2" />
+              Schedule View
             </button>
           </nav>
         </div>
         
         <div className="p-6">
-          {/* Classes Tab */}
-          {activeTab === 'classes' && (
+          {/* Trainers Tab */}
+          {activeTab === 'trainers' && (
             <div>
-              {/* Filters */}
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-3 md:space-y-0">
-                <div className="relative max-w-xs">
+              {/* Search */}
+              <div className="mb-6">
+                <div className="relative max-w-md">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiSearch className="text-gray-400" />
                   </div>
                   <input
                     type="text"
-                    placeholder="Search classes..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md w-full"
+                    placeholder="Search trainers by name, email or specialization..."
+                    className="pl-10 pr-4 py-3 bg-primary-200 border border-primary-100 rounded-lg w-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/50"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    <FiFilter className="text-gray-400" />
-                    <select
-                      className="border border-gray-300 rounded-md px-3 py-2"
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                    >
-                      <option value="all">All Status</option>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
+              </div>
+              
+              {/* Trainers Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredTrainers.map((trainer) => (
+                  <div 
+                    key={trainer._id} 
+                    className="bg-primary-200 rounded-xl p-5 border border-primary-100 hover:border-accent/50 transition-all cursor-pointer"
+                    onClick={() => handleSelectTrainer(trainer)}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-accent to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                        {trainer.firstname?.charAt(0) || 'T'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-white font-semibold text-lg truncate">
+                          {trainer.firstname} {trainer.lastname}
+                        </h3>
+                        <p className="text-accent text-sm">{trainer.ptSpecialization || 'General Fitness'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center gap-2 text-gray-400 text-sm">
+                        <FiMail className="flex-shrink-0" />
+                        <span className="truncate">{trainer.email}</span>
+                      </div>
+                      {trainer.phonenumber && (
+                        <div className="flex items-center gap-2 text-gray-400 text-sm">
+                          <FiPhone className="flex-shrink-0" />
+                          <span>{trainer.phonenumber}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-gray-400 text-sm">
+                        <FiBriefcase className="flex-shrink-0" />
+                        <span>{trainer.ptExperience || 'Experience not specified'}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-primary-100 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <FiUserCheck className="text-green-400" />
+                        <span className="text-white font-medium">{trainer.ptClients?.length || 0} clients</span>
+                      </div>
+                      <button className="text-accent text-sm hover:underline">
+                        View Schedule →
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
               
-              {/* Classes Table */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Class Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Trainer
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Schedule
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Location
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Capacity
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredClasses.map((cls) => (
-                      <tr key={cls.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{cls.name}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{cls.trainer}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{cls.schedule.days.join(', ')}</div>
-                          <div className="text-sm text-gray-500">{cls.schedule.time}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {cls.location}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{cls.enrolled}/{cls.capacity}</div>
-                          <div className="w-24 bg-gray-200 rounded-full h-2.5 mt-1">
-                            <div 
-                              className="bg-indigo-600 h-2.5 rounded-full" 
-                              style={{ width: `${(cls.enrolled / cls.capacity) * 100}%` }}
-                            ></div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            cls.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {cls.status === 'active' ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex justify-end space-x-2">
-                            <button className="text-indigo-600 hover:text-indigo-900" title="Student List">
-                              <FiUsers className="h-5 w-5" />
-                            </button>
-                            <button className="text-blue-600 hover:text-blue-900" title="Edit">
-                              <FiEdit className="h-5 w-5" />
-                            </button>
-                            <button className="text-red-600 hover:text-red-900" title="Delete">
-                              <FiTrash2 className="h-5 w-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              {/* Pagination */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-gray-700">
-                  Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredClasses.length}</span> of{' '}
-                  <span className="font-medium">{filteredClasses.length}</span> classes
+              {filteredTrainers.length === 0 && (
+                <div className="text-center py-12">
+                  <FiUsers className="text-5xl text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg">No trainers found</p>
+                  <p className="text-gray-500 text-sm">Try adjusting your search</p>
                 </div>
-                <div className="flex space-x-2">
-                  <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    <FiChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                    <FiChevronRight className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
           )}
           
           {/* Schedule Tab */}
           {activeTab === 'schedule' && (
             <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-gray-900">Room Schedule</h2>
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    <FiMapPin className="text-gray-400" />
-                    <select
-                      className="border border-gray-300 rounded-md px-3 py-2"
-                      value={currentRoom}
-                      onChange={(e) => setCurrentRoom(Number(e.target.value))}
+              {selectedTrainer ? (
+                <div>
+                  {/* Selected Trainer Info */}
+                  <div className="bg-primary-200 rounded-xl p-4 mb-6 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-accent to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                      {selectedTrainer.firstname?.charAt(0) || 'T'}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-white font-semibold">
+                        {selectedTrainer.firstname} {selectedTrainer.lastname}
+                      </h3>
+                      <p className="text-gray-400 text-sm">{selectedTrainer.ptSpecialization || 'General Fitness'}</p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setSelectedTrainer(null)
+                        setTrainerSchedule([])
+                        setActiveTab('trainers')
+                      }}
+                      className="text-gray-400 hover:text-white text-sm"
                     >
-                      {rooms.map(room => (
-                        <option key={room.id} value={room.id}>
-                          {room.name}
-                        </option>
-                      ))}
-                    </select>
+                      Change Trainer
+                    </button>
                   </div>
-                </div>
-              </div>
-              
-              {/* Schedule Grid */}
-              <div className="overflow-x-auto">
-                <table className="min-w-full border border-gray-200">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="w-20 px-4 py-3 border-b border-r border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Time
-                      </th>
-                      {weekDays.map((day, index) => (
-                        <th key={index} className="px-4 py-3 border-b border-r border-gray-200 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {day}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {timeSlots.map((time, timeIndex) => (
-                      <tr key={timeIndex} className={timeIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="px-4 py-3 border-b border-r border-gray-200 text-xs font-medium text-gray-500">
-                          {time}
-                        </td>
-                        {weekDays.map((day, dayIndex) => {
-                          // Find class at this day and time
-                          const classInSlot = classes.find(cls => 
-                            cls.schedule.days.includes(day) && 
-                            cls.schedule.time.startsWith(time) &&
-                            cls.location === rooms.find(r => r.id === currentRoom)?.name
-                          );
-                          
-                          return (
-                            <td 
-                              key={dayIndex} 
-                              className="px-2 py-2 border-b border-r border-gray-200 h-16"
-                            >
-                              {classInSlot ? (
-                                <div className="bg-indigo-100 border border-indigo-300 rounded-md p-2 h-full">
-                                  <div className="text-xs font-medium text-indigo-800">{classInSlot.name}</div>
-                                  <div className="text-xs text-indigo-600 mt-1">{classInSlot.trainer}</div>
-                                  <div className="text-xs text-gray-500 mt-1">{classInSlot.enrolled}/{classInSlot.capacity}</div>
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-center h-full">
-                                  <button className="text-gray-400 hover:text-indigo-600">
-                                    <FiPlus className="h-5 w-5" />
-                                  </button>
-                                </div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-          
-          {/* Rooms Tab */}
-          {activeTab === 'rooms' && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-medium text-gray-900">Room Management</h2>
-                <button className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md">
-                  <FiPlus className="h-5 w-5" />
-                  <span>Add New Room</span>
-                </button>
-              </div>
-              
-              {/* Rooms Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {rooms.map((room) => (
-                  <div key={room.id} className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-                    <div className="p-5">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-lg font-bold text-gray-900">{room.name}</h3>
-                        <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" title="Edit">
-                            <FiEdit className="h-5 w-5" />
-                          </button>
-                          <button className="text-red-600 hover:text-red-800" title="Delete">
-                            <FiTrash2 className="h-5 w-5" />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 space-y-2">
-                        <div className="flex items-center">
-                          <FiUsers className="h-5 w-5 text-gray-400 mr-2" />
-                          <span className="text-sm text-gray-600">Capacity: {room.capacity} people</span>
-                        </div>
-                        <div className="flex items-start">
-                          <FiCalendar className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
-                          <span className="text-sm text-gray-600">
-                            {classes.filter(c => c.location === room.name && c.status === 'active').length} active classes
+                  
+                  {/* Schedule List */}
+                  {scheduleLoading ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-accent mx-auto"></div>
+                    </div>
+                  ) : trainerSchedule.length > 0 ? (
+                    <div className="space-y-3">
+                      <h4 className="text-white font-medium mb-4">Scheduled Sessions ({trainerSchedule.length})</h4>
+                      {trainerSchedule.map((schedule) => (
+                        <div 
+                          key={schedule._id} 
+                          className="bg-primary-200 rounded-lg p-4 flex items-center gap-4"
+                        >
+                          <div className="bg-accent/20 p-3 rounded-lg border border-accent/30">
+                            <FiCalendar className="text-accent" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{schedule.userName}</p>
+                            <p className="text-gray-400 text-sm">
+                              {schedule.scheduleDate} - {schedule.shift}
+                            </p>
+                            <p className="text-gray-500 text-xs mt-1">{schedule.scheduleName}</p>
+                          </div>
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400">
+                            Scheduled
                           </span>
                         </div>
-                        <div className="flex items-start">
-                          <div className="h-5 w-5 flex justify-center text-gray-400 mr-2">
-                            <span className="font-bold">i</span>
-                          </div>
-                          <span className="text-sm text-gray-600">Equipment: {room.equipment}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4">
-                        <button className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 py-2 px-4 rounded-md text-sm font-medium">
-                          View Room Schedule
-                        </button>
-                      </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ) : (
+                    <div className="text-center py-12 bg-primary-200 rounded-xl">
+                      <FiCalendar className="text-5xl text-gray-600 mx-auto mb-4" />
+                      <p className="text-gray-400 text-lg">No scheduled sessions</p>
+                      <p className="text-gray-500 text-sm">This trainer has no upcoming sessions</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <FiUsers className="text-5xl text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-lg">Select a trainer to view schedule</p>
+                  <button 
+                    onClick={() => setActiveTab('trainers')}
+                    className="mt-4 text-accent hover:underline"
+                  >
+                    Go to Trainer List
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
+      
+      {/* Specializations Overview */}
+      <div className="bg-primary-300 rounded-xl p-6 border border-primary-100">
+        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <FiAward className="text-accent" />
+          Trainers by Specialization
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Object.entries(specializations).map(([spec, count]) => (
+            <div key={spec} className="bg-primary-200 rounded-lg p-4 text-center">
+              <p className="text-2xl font-bold text-white">{count}</p>
+              <p className="text-gray-400 text-sm mt-1">{spec}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
-} 
+}

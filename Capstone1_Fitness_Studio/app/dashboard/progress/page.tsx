@@ -1,617 +1,425 @@
 'use client'
 
-import { useState } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaWeight, FaRulerVertical, FaHeartbeat, FaDumbbell } from 'react-icons/fa';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useState, useEffect } from 'react';
+import { FaCalendarAlt, FaCheckCircle, FaClock, FaDumbbell, FaShoppingBag, FaTrophy, FaUser, FaUserTie, FaCrown, FaChartLine } from 'react-icons/fa';
+import { MdFitnessCenter } from 'react-icons/md';
 
-// Mock data cho biểu đồ
-const progressData = [
-  { date: '01/07/2023', weight: 75, bodyFat: 22, muscle: 35 },
-  { date: '08/07/2023', weight: 74.5, bodyFat: 21.5, muscle: 35.2 },
-  { date: '15/07/2023', weight: 74, bodyFat: 21, muscle: 35.5 },
-  { date: '22/07/2023', weight: 73.2, bodyFat: 20.5, muscle: 36 },
-  { date: '29/07/2023', weight: 72.8, bodyFat: 20, muscle: 36.3 },
-  { date: '05/08/2023', weight: 72, bodyFat: 19.5, muscle: 36.8 },
-];
+interface Membership {
+  _id: string;
+  name: string;
+  duration: number;
+  status: string;
+  createdDate: string;
+  expiredDate: string;
+  price?: number;
+}
 
-// Mock data cho nhật ký tập luyện
-const workoutLogs = [
-  {
-    id: 1,
-    date: '05/08/2023',
-    exercises: [
-      { name: 'Squat', sets: 4, reps: 10, weight: 80 },
-      { name: 'Deadlift', sets: 3, reps: 8, weight: 100 },
-      { name: 'Bench Press', sets: 4, reps: 10, weight: 70 },
-      { name: 'Pull-ups', sets: 3, reps: 12, weight: 0 },
-    ],
-    duration: 65,
-    notes: 'Buổi tập tốt, tăng được trọng lượng squat',
-  },
-  {
-    id: 2,
-    date: '03/08/2023',
-    exercises: [
-      { name: 'Leg Press', sets: 4, reps: 12, weight: 120 },
-      { name: 'Shoulder Press', sets: 3, reps: 10, weight: 45 },
-      { name: 'Lat Pulldown', sets: 4, reps: 12, weight: 60 },
-      { name: 'Bicep Curl', sets: 3, reps: 15, weight: 15 },
-    ],
-    duration: 55,
-    notes: 'Tập trung vào kỹ thuật, giảm trọng lượng một chút',
-  },
-  {
-    id: 3,
-    date: '01/08/2023',
-    exercises: [
-      { name: 'Running', sets: 1, reps: 1, weight: 0 },
-      { name: 'Plank', sets: 3, reps: 1, weight: 0 },
-      { name: 'Push-ups', sets: 3, reps: 20, weight: 0 },
-    ],
-    duration: 45,
-    notes: 'Cardio và bodyweight exercises',
-  },
-];
+interface Schedule {
+  _id: string;
+  scheduleName: string;
+  scheduleDate: string;
+  shift: string;
+  ptId: string;
+  ptName: string;
+  userId: string;
+  userName: string;
+  status: 'pending' | 'active' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+}
 
-// Mock data cho mục tiêu
-const goals = [
-  {
-    id: 1,
-    title: 'Giảm cân',
-    description: 'Giảm xuống 70kg',
-    target: 70,
-    current: 72,
-    unit: 'kg',
-    deadline: '01/10/2023',
-    progress: 60,
-  },
-  {
-    id: 2,
-    title: 'Giảm mỡ',
-    description: 'Giảm tỷ lệ mỡ cơ thể xuống 15%',
-    target: 15,
-    current: 19.5,
-    unit: '%',
-    deadline: '01/11/2023',
-    progress: 35,
-  },
-  {
-    id: 3,
-    title: 'Tăng sức bền',
-    description: 'Chạy 10km không nghỉ',
-    target: 10,
-    current: 7,
-    unit: 'km',
-    deadline: '15/10/2023',
-    progress: 70,
-  },
-];
+interface Order {
+  _id: string;
+  totalCartPrice: number;
+  finalPrice: number;
+  status: 'pending' | 'shipping' | 'completed';
+  createdAt: string;
+}
 
 export default function Progress() {
-  const [activeTab, setActiveTab] = useState('body');
-  const [showAddMeasurement, setShowAddMeasurement] = useState(false);
-  const [showAddWorkout, setShowAddWorkout] = useState(false);
-  const [showAddGoal, setShowAddGoal] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [membership, setMembership] = useState<Membership | null>(null);
+  const [trainer, setTrainer] = useState<any>(null);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Xử lý thêm chỉ số cơ thể mới
-  const handleAddMeasurement = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Xử lý thêm dữ liệu vào progressData
-    setShowAddMeasurement(false);
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        // Get user from localStorage
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) {
+          setLoading(false);
+          return;
+        }
+
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+
+        // Fetch membership
+        const membershipId = parsedUser.membership;
+        if (membershipId) {
+          try {
+            const resMembership = await fetch(`http://localhost:5000/admin/memberships/${membershipId}`, {
+              credentials: 'include',
+            });
+            if (resMembership.ok) {
+              const membershipData = await resMembership.json();
+              setMembership(membershipData);
+            }
+          } catch (err) {
+            console.error('Error fetching membership:', err);
+          }
+        }
+
+        // Fetch trainer
+        const assignedPT = parsedUser.assignedPT;
+        if (assignedPT) {
+          try {
+            const resTrainer = await fetch(`http://localhost:5000/user/trainer/${assignedPT}`, {
+              credentials: 'include',
+            });
+            if (resTrainer.ok) {
+              const trainerData = await resTrainer.json();
+              setTrainer(trainerData);
+            }
+          } catch (err) {
+            console.error('Error fetching trainer:', err);
+          }
+        }
+
+        // Fetch schedules
+        try {
+          const resSchedule = await fetch(`http://localhost:5000/schedule/user/${parsedUser._id}`, {
+            credentials: 'include',
+          });
+          if (resSchedule.ok) {
+            const scheduleData = await resSchedule.json();
+            setSchedules(scheduleData);
+          }
+        } catch (err) {
+          console.error('Error fetching schedules:', err);
+        }
+
+        // Fetch orders
+        try {
+          const resOrders = await fetch(`http://localhost:5000/order/get-orders/${parsedUser._id}`, {
+            credentials: 'include',
+          });
+          if (resOrders.ok) {
+            const ordersData = await resOrders.json();
+            setOrders(ordersData.orders || []);
+          }
+        } catch (err) {
+          console.error('Error fetching orders:', err);
+        }
+
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Calculate statistics
+  const stats = {
+    // Membership stats
+    membershipDaysUsed: membership
+      ? Math.max(0, Math.ceil((new Date().getTime() - new Date(membership.createdDate).getTime()) / (1000 * 60 * 60 * 24)))
+      : 0,
+    membershipDaysLeft: membership
+      ? Math.max(0, Math.ceil((new Date(membership.expiredDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+      : 0,
+    membershipProgress: membership
+      ? Math.min(100, Math.max(0, ((new Date().getTime() - new Date(membership.createdDate).getTime()) / (new Date(membership.expiredDate).getTime() - new Date(membership.createdDate).getTime())) * 100))
+      : 0,
+    
+    // Schedule stats
+    totalSessions: schedules.length,
+    activeSessions: schedules.filter(s => s.status === 'active').length,
+    pendingSessions: schedules.filter(s => s.status === 'pending').length,
+    completedSessions: schedules.filter(s => s.status === 'active' || s.status === 'rejected').length,
+    
+    // Order stats
+    totalOrders: orders.length,
+    completedOrders: orders.filter(o => o.status === 'completed').length,
+    totalSpent: orders.reduce((sum, order) => sum + order.finalPrice, 0),
+    
+    // Overall progress
+    hasTrainer: !!trainer,
+    hasMembership: !!membership,
   };
 
-  // Xử lý thêm nhật ký tập luyện mới
-  const handleAddWorkout = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Xử lý thêm dữ liệu vào workoutLogs
-    setShowAddWorkout(false);
-  };
+  // Calculate achievement rate
+  const achievementRate = Math.round(
+    ((stats.hasMembership ? 25 : 0) +
+    (stats.hasTrainer ? 25 : 0) +
+    (stats.activeSessions > 0 ? 25 : 0) +
+    (stats.completedOrders > 0 ? 25 : 0))
+  );
 
-  // Xử lý thêm mục tiêu mới
-  const handleAddGoal = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Xử lý thêm dữ liệu vào goals
-    setShowAddGoal(false);
-  };
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-primary-300 rounded-xl shadow-2xl p-12 border border-primary-100 text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-accent border-t-transparent mb-4"></div>
+          <p className="text-gray-400 text-lg">Loading your progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6 text-white">Progress Tracking</h1>
-
-      {/* Tabs */}
-      <div className="flex border-b border-primary-100 mb-6">
-        <button
-          onClick={() => setActiveTab('body')}
-          className={`py-2 px-4 font-medium ${
-            activeTab === 'body'
-              ? 'border-b-2 border-accent text-accent'
-              : 'text-gray-300 hover:text-white'
-          }`}
-        >
-          Body Metrics
-        </button>
-        <button
-          onClick={() => setActiveTab('workouts')}
-          className={`py-2 px-4 font-medium ${
-            activeTab === 'workouts'
-              ? 'border-b-2 border-accent text-accent'
-              : 'text-gray-300 hover:text-white'
-          }`}
-        >
-          Workout Log
-        </button>
-        <button
-          onClick={() => setActiveTab('goals')}
-          className={`py-2 px-4 font-medium ${
-            activeTab === 'goals'
-              ? 'border-b-2 border-accent text-accent'
-              : 'text-gray-300 hover:text-white'
-          }`}
-        >
-          Goals
-        </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary-300 to-primary-200 rounded-xl shadow-2xl p-8 border border-primary-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <FaChartLine className="text-accent text-4xl" />
+              <h1 className="text-4xl font-bold text-white">Progress Tracking</h1>
+            </div>
+            <p className="text-gray-300 text-lg">
+              Track your fitness journey and achievements
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <MdFitnessCenter className="text-accent text-7xl opacity-20" />
+          </div>
+        </div>
       </div>
 
-      {/* Body Measurements Tab */}
-      {activeTab === 'body' && (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-white">Body Metrics</h2>
-            <button
-              onClick={() => setShowAddMeasurement(true)}
-              className="flex items-center bg-accent hover:bg-accent/90 text-white px-3 py-2 rounded-md transition-colors"
-            >
-              <FaPlus className="mr-2" />
-              <span>Add New Metric</span>
-            </button>
+      {/* Achievement Score */}
+      <div className="bg-gradient-to-r from-accent to-accent/80 rounded-xl shadow-2xl p-8 border border-accent">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-white/80 text-sm font-medium mb-1">Overall Achievement</p>
+            <p className="text-white text-5xl font-bold">{achievementRate}%</p>
+            <p className="text-white/80 text-sm mt-2">
+              {achievementRate === 100 ? 'Excellent! You\'re crushing it!' :
+               achievementRate >= 75 ? 'Great progress! Keep it up!' :
+               achievementRate >= 50 ? 'Good start! Stay consistent!' :
+               'Start your journey today!'}
+            </p>
+          </div>
+          <FaTrophy className="text-white text-7xl opacity-50" />
+        </div>
+        <div className="mt-4">
+          <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden">
+            <div
+              className="h-full bg-white transition-all duration-500"
+              style={{ width: `${achievementRate}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Milestones Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Membership Milestone */}
+        <div className={`rounded-lg shadow-xl p-6 border transition-all duration-300 ${
+          stats.hasMembership 
+            ? 'bg-green-500/20 border-green-500' 
+            : 'bg-primary-300 border-primary-100'
+        }`}>
+          <div className="flex items-center justify-between mb-4">
+            <FaCrown className={`text-4xl ${stats.hasMembership ? 'text-green-400' : 'text-gray-500'}`} />
+            {stats.hasMembership && <FaCheckCircle className="text-green-400 text-2xl" />}
+          </div>
+          <h3 className="text-white font-bold text-lg mb-2">Active Membership</h3>
+          <p className="text-gray-400 text-sm">
+            {stats.hasMembership ? 'Unlocked!' : 'Get a membership to start'}
+          </p>
+        </div>
+
+        {/* Trainer Milestone */}
+        <div className={`rounded-lg shadow-xl p-6 border transition-all duration-300 ${
+          stats.hasTrainer 
+            ? 'bg-green-500/20 border-green-500' 
+            : 'bg-primary-300 border-primary-100'
+        }`}>
+          <div className="flex items-center justify-between mb-4">
+            <FaUserTie className={`text-4xl ${stats.hasTrainer ? 'text-green-400' : 'text-gray-500'}`} />
+            {stats.hasTrainer && <FaCheckCircle className="text-green-400 text-2xl" />}
+          </div>
+          <h3 className="text-white font-bold text-lg mb-2">Personal Trainer</h3>
+          <p className="text-gray-400 text-sm">
+            {stats.hasTrainer ? 'Assigned!' : 'Get a personal trainer'}
+          </p>
+        </div>
+
+        {/* First Session Milestone */}
+        <div className={`rounded-lg shadow-xl p-6 border transition-all duration-300 ${
+          stats.activeSessions > 0 
+            ? 'bg-green-500/20 border-green-500' 
+            : 'bg-primary-300 border-primary-100'
+        }`}>
+          <div className="flex items-center justify-between mb-4">
+            <FaDumbbell className={`text-4xl ${stats.activeSessions > 0 ? 'text-green-400' : 'text-gray-500'}`} />
+            {stats.activeSessions > 0 && <FaCheckCircle className="text-green-400 text-2xl" />}
+          </div>
+          <h3 className="text-white font-bold text-lg mb-2">First Training Session</h3>
+          <p className="text-gray-400 text-sm">
+            {stats.activeSessions > 0 ? 'Started training!' : 'Book your first session'}
+          </p>
+        </div>
+
+        {/* First Purchase Milestone */}
+        <div className={`rounded-lg shadow-xl p-6 border transition-all duration-300 ${
+          stats.completedOrders > 0 
+            ? 'bg-green-500/20 border-green-500' 
+            : 'bg-primary-300 border-primary-100'
+        }`}>
+          <div className="flex items-center justify-between mb-4">
+            <FaShoppingBag className={`text-4xl ${stats.completedOrders > 0 ? 'text-green-400' : 'text-gray-500'}`} />
+            {stats.completedOrders > 0 && <FaCheckCircle className="text-green-400 text-2xl" />}
+          </div>
+          <h3 className="text-white font-bold text-lg mb-2">First Purchase</h3>
+          <p className="text-gray-400 text-sm">
+            {stats.completedOrders > 0 ? 'Shop completed!' : 'Make your first purchase'}
+          </p>
+        </div>
+      </div>
+
+      {/* Membership Progress */}
+      {membership && (
+        <div className="bg-primary-300 rounded-xl shadow-2xl p-8 border border-primary-100">
+          <div className="flex items-center gap-3 mb-6">
+            <FaCrown className="text-accent text-2xl" />
+            <h2 className="text-2xl font-bold text-white">Membership Progress</h2>
           </div>
 
-          {/* Charts */}
-          <div className="bg-primary-300 rounded-lg shadow-2xl p-6 mb-8 border border-primary-100">
-            <h3 className="font-medium mb-4 text-white">Progress Chart</h3>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={progressData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="weight" stroke="#8884d8" name="Weight (kg)" />
-                  <Line type="monotone" dataKey="bodyFat" stroke="#82ca9d" name="Body Fat (%)" />
-                  <Line type="monotone" dataKey="muscle" stroke="#ffc658" name="Muscle Mass (kg)" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Recent measurements */}
-          <div className="bg-primary-300 rounded-lg shadow-2xl p-6 border border-primary-100">
-            <h3 className="font-medium mb-4 text-white">Recent Metrics</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-primary-100">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Weight (kg)</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Body Fat (%)</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Muscle Mass (kg)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-primary-100">
-                  {progressData.slice().reverse().map((entry, index) => (
-                    <tr key={index}>
-                      <td className="px-4 py-2 whitespace-nowrap text-white">{entry.date}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-white">{entry.weight}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-white">{entry.bodyFat}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-white">{entry.muscle}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Add measurement modal */}
-          {showAddMeasurement && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg max-w-md w-full">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-xl font-bold">Thêm chỉ số mới</h2>
-                    <button 
-                      onClick={() => setShowAddMeasurement(false)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      &times;
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleAddMeasurement}>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ngày</label>
-                      <input 
-                        type="date" 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        required
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Cân nặng (kg)</label>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tỷ lệ mỡ (%)</label>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Khối lượng cơ (kg)</label>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddMeasurement(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                      >
-                        Hủy
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-md"
-                      >
-                        Lưu
-                      </button>
-                    </div>
-                  </form>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="bg-primary-200 rounded-lg p-6 border border-primary-100">
+              <div className="flex items-center gap-3 mb-3">
+                <FaCalendarAlt className="text-blue-400 text-2xl" />
+                <h3 className="text-white font-semibold">Days Active</h3>
               </div>
+              <p className="text-white text-4xl font-bold">{stats.membershipDaysUsed}</p>
+              <p className="text-gray-400 text-sm mt-2">Since {new Date(membership.createdDate).toLocaleDateString()}</p>
             </div>
-          )}
+
+            <div className="bg-primary-200 rounded-lg p-6 border border-primary-100">
+              <div className="flex items-center gap-3 mb-3">
+                <FaClock className="text-yellow-400 text-2xl" />
+                <h3 className="text-white font-semibold">Days Remaining</h3>
+              </div>
+              <p className="text-white text-4xl font-bold">{stats.membershipDaysLeft}</p>
+              <p className="text-gray-400 text-sm mt-2">Until {new Date(membership.expiredDate).toLocaleDateString()}</p>
+            </div>
+
+            <div className="bg-primary-200 rounded-lg p-6 border border-primary-100">
+              <div className="flex items-center gap-3 mb-3">
+                <FaCheckCircle className="text-green-400 text-2xl" />
+                <h3 className="text-white font-semibold">Plan Type</h3>
+              </div>
+              <p className="text-white text-2xl font-bold">{membership.name}</p>
+              <p className="text-gray-400 text-sm mt-2 capitalize">{membership.status}</p>
+            </div>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-white font-medium">Membership Duration</span>
+              <span className="text-white font-bold">{Math.round(stats.membershipProgress)}%</span>
+            </div>
+            <div className="w-full bg-primary-200 rounded-full h-4 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  stats.membershipProgress > 80 ? 'bg-red-500' : 
+                  stats.membershipProgress > 50 ? 'bg-yellow-500' : 'bg-green-500'
+                }`}
+                style={{ width: `${stats.membershipProgress}%` }}
+              />
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Workouts Tab */}
-      {activeTab === 'workouts' && (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-white">Nhật ký tập luyện</h2>
-            <button
-              onClick={() => setShowAddWorkout(true)}
-              className="flex items-center bg-accent hover:bg-accent/90 text-white px-3 py-2 rounded-md"
-            >
-              <FaPlus className="mr-2" />
-              <span>Thêm buổi tập</span>
-            </button>
-          </div>
-
-          {/* Workout logs */}
-          <div className="space-y-6">
-            {workoutLogs.map((log) => (
-              <div key={log.id} className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-lg">{log.date}</h3>
-                    <p className="text-gray-600 text-sm">Thời gian: {log.duration} phút</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button className="text-blue-500 hover:text-blue-700">
-                      <FaEdit />
-                    </button>
-                    <button className="text-red-500 hover:text-red-700">
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto mb-4">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bài tập</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sets</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reps</th>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trọng lượng (kg)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {log.exercises.map((exercise, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-2 whitespace-nowrap">{exercise.name}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{exercise.sets}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{exercise.reps}</td>
-                          <td className="px-4 py-2 whitespace-nowrap">{exercise.weight}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {log.notes && (
-                  <div>
-                    <h4 className="font-medium text-sm mb-1">Ghi chú:</h4>
-                    <p className="text-gray-600 text-sm">{log.notes}</p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Add workout modal */}
-          {showAddWorkout && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-xl font-bold">Thêm buổi tập mới</h2>
-                    <button 
-                      onClick={() => setShowAddWorkout(false)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      &times;
-                    </button>
-                  </div>
-
-                  <form onSubmit={handleAddWorkout}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Ngày</label>
-                        <input 
-                          type="date" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian (phút)</label>
-                        <input 
-                          type="number" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Bài tập</label>
-                      <div className="border rounded-md p-4 space-y-4">
-                        <div className="grid grid-cols-4 gap-2">
-                          <div className="col-span-1">
-                            <label className="block text-xs text-gray-500 mb-1">Bài tập</label>
-                            <input 
-                              type="text" 
-                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                              placeholder="Tên bài tập"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Sets</label>
-                            <input 
-                              type="number" 
-                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Reps</label>
-                            <input 
-                              type="number" 
-                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Trọng lượng (kg)</label>
-                            <input 
-                              type="number" 
-                              step="0.5"
-                              className="w-full px-2 py-1 border border-gray-300 rounded-md text-sm"
-                            />
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          className="flex items-center text-accent hover:text-accent/80 text-sm"
-                        >
-                          <FaPlus className="mr-1" />
-                          <span>Thêm bài tập</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                      <textarea 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        rows={3}
-                      ></textarea>
-                    </div>
-
-                    <div className="flex justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddWorkout(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                      >
-                        Hủy
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-md"
-                      >
-                        Lưu
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Training Statistics */}
+      <div className="bg-primary-300 rounded-xl shadow-2xl p-8 border border-primary-100">
+        <div className="flex items-center gap-3 mb-6">
+          <FaDumbbell className="text-accent text-2xl" />
+          <h2 className="text-2xl font-bold text-white">Training Statistics</h2>
         </div>
-      )}
 
-      {/* Goals Tab */}
-      {activeTab === 'goals' && (
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-white">Mục tiêu</h2>
-            <button
-              onClick={() => setShowAddGoal(true)}
-              className="flex items-center bg-accent hover:bg-accent/90 text-white px-3 py-2 rounded-md"
-            >
-              <FaPlus className="mr-2" />
-              <span>Thêm mục tiêu</span>
-            </button>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-primary-200 rounded-lg p-6 border border-primary-100 text-center">
+            <p className="text-gray-400 text-sm mb-2">Total Sessions</p>
+            <p className="text-white text-4xl font-bold">{stats.totalSessions}</p>
           </div>
 
-          {/* Goals list */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {goals.map((goal) => (
-              <div key={goal.id} className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-bold text-lg">{goal.title}</h3>
-                  <div className="flex space-x-2">
-                    <button className="text-blue-500 hover:text-blue-700">
-                      <FaEdit />
-                    </button>
-                    <button className="text-red-500 hover:text-red-700">
-                      <FaTrash />
-                    </button>
-                  </div>
-                </div>
-                
-                <p className="text-gray-600 mb-4">{goal.description}</p>
-                
-                <div className="flex justify-between mb-2">
-                  <span>Tiến độ:</span>
-                  <span>{goal.current} / {goal.target} {goal.unit}</span>
-                </div>
-                
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                  <div 
-                    className="bg-accent h-2.5 rounded-full" 
-                    style={{ width: `${goal.progress}%` }}
-                  ></div>
-                </div>
-                
-                <p className="text-sm text-gray-500">Hạn chót: {goal.deadline}</p>
-              </div>
-            ))}
+          <div className="bg-primary-200 rounded-lg p-6 border border-primary-100 text-center">
+            <p className="text-gray-400 text-sm mb-2">Active</p>
+            <p className="text-green-400 text-4xl font-bold">{stats.activeSessions}</p>
           </div>
 
-          {/* Add goal modal */}
-          {showAddGoal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-lg max-w-md w-full">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-xl font-bold">Thêm mục tiêu mới</h2>
-                    <button 
-                      onClick={() => setShowAddGoal(false)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      &times;
-                    </button>
-                  </div>
+          <div className="bg-primary-200 rounded-lg p-6 border border-primary-100 text-center">
+            <p className="text-gray-400 text-sm mb-2">Pending</p>
+            <p className="text-yellow-400 text-4xl font-bold">{stats.pendingSessions}</p>
+          </div>
 
-                  <form onSubmit={handleAddGoal}>
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label>
-                      <input 
-                        type="text" 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        required
-                      />
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-                      <textarea 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                        rows={2}
-                      ></textarea>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mục tiêu</label>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Đơn vị</label>
-                        <input 
-                          type="text" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                          placeholder="kg, %, km, v.v."
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Hiện tại</label>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Hạn chót</label>
-                        <input 
-                          type="date" 
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-accent/20"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddGoal(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                      >
-                        Hủy
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-md"
-                      >
-                        Lưu
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="bg-primary-200 rounded-lg p-6 border border-primary-100 text-center">
+            <p className="text-gray-400 text-sm mb-2">With Trainer</p>
+            <p className="text-blue-400 text-4xl font-bold">{trainer ? '✓' : '✗'}</p>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Shopping Activity */}
+      <div className="bg-primary-300 rounded-xl shadow-2xl p-8 border border-primary-100">
+        <div className="flex items-center gap-3 mb-6">
+          <FaShoppingBag className="text-accent text-2xl" />
+          <h2 className="text-2xl font-bold text-white">Shopping Activity</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-primary-200 rounded-lg p-6 border border-primary-100">
+            <p className="text-gray-400 text-sm mb-2">Total Orders</p>
+            <p className="text-white text-4xl font-bold">{stats.totalOrders}</p>
+          </div>
+
+          <div className="bg-primary-200 rounded-lg p-6 border border-primary-100">
+            <p className="text-gray-400 text-sm mb-2">Completed Orders</p>
+            <p className="text-white text-4xl font-bold">{stats.completedOrders}</p>
+          </div>
+
+          <div className="bg-primary-200 rounded-lg p-6 border border-primary-100">
+            <p className="text-gray-400 text-sm mb-2">Total Spent</p>
+            <p className="text-accent text-3xl font-bold">${stats.totalSpent.toFixed(2)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Card */}
+      <div className="bg-gradient-to-r from-primary-300 to-primary-200 rounded-xl shadow-2xl p-8 border border-primary-100">
+        <div className="flex items-center gap-3 mb-4">
+          <FaUser className="text-accent text-2xl" />
+          <h2 className="text-2xl font-bold text-white">Your Journey Summary</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white">
+          <div className="flex items-center gap-3">
+            <FaCheckCircle className={`text-2xl ${stats.hasMembership ? 'text-green-400' : 'text-gray-500'}`} />
+            <span>{stats.hasMembership ? 'Active membership plan' : 'No active membership'}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaCheckCircle className={`text-2xl ${stats.hasTrainer ? 'text-green-400' : 'text-gray-500'}`} />
+            <span>{stats.hasTrainer ? `Training with ${trainer.firstname}` : 'No assigned trainer'}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaCheckCircle className={`text-2xl ${stats.totalSessions > 0 ? 'text-green-400' : 'text-gray-500'}`} />
+            <span>{stats.totalSessions > 0 ? `${stats.totalSessions} training sessions booked` : 'No sessions booked yet'}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <FaCheckCircle className={`text-2xl ${stats.totalOrders > 0 ? 'text-green-400' : 'text-gray-500'}`} />
+            <span>{stats.totalOrders > 0 ? `${stats.totalOrders} orders placed` : 'No orders yet'}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
-} 
+}

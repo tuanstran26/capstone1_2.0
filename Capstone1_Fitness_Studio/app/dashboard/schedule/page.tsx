@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FaClock, FaCalendarAlt, FaCheckCircle } from "react-icons/fa";
+import { FaClock, FaCalendarAlt, FaCheckCircle, FaUserTie, FaDumbbell, FaTimes, FaHourglassHalf, FaUser } from "react-icons/fa";
+import { MdSchedule } from "react-icons/md";
 import { useRouter } from 'next/navigation';
 
 interface ScheduleSlot {
@@ -193,120 +194,281 @@ export default function SchedulePage() {
       setLoading2(false);
     }
   };
+  
+  // Get status color
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return 'bg-green-500';
+      case 'pending':
+        return 'bg-yellow-500';
+      case 'rejected':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  // Get status icon
+  const getStatusIcon = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'active':
+        return <FaCheckCircle className="text-white" />;
+      case 'pending':
+        return <FaHourglassHalf className="text-white" />;
+      case 'rejected':
+        return <FaTimes className="text-white" />;
+      default:
+        return null;
+    }
+  };
+
+  // Calculate schedule stats
+  const scheduleStats = {
+    total: schedule.length,
+    active: schedule.filter(s => s.status === 'active').length,
+    pending: schedule.filter(s => s.status === 'pending').length,
+    rejected: schedule.filter(s => s.status === 'rejected').length,
+  };
+
   return (
-    <div className="text-white">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-primary-300 to-primary-200 rounded-xl shadow-2xl p-8 border border-primary-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <MdSchedule className="text-accent text-4xl" />
+              <h1 className="text-4xl font-bold text-white">Training Schedule</h1>
+            </div>
+            <p className="text-gray-300 text-lg">
+              Manage your training sessions and bookings
+            </p>
+          </div>
+        </div>
+      </div>
 
-
-      <h2 className="text-3xl font-bold mb-6 text-white">Create Training Schedule</h2>
-
-      {errorMsg && <p className="text-red-500 mb-2">{errorMsg}</p>}
-      {successMsg && <p className="text-green-500 mb-2">{successMsg}</p>}
-
-      {user && pt && (
-        <div className="space-y-4">
-          <div className="text-gray-300">
-            <p>User: <span className="text-white font-medium">{user.firstname} {user.lastname}</span></p>
-            <p>Your Trainer: <span className="text-white font-medium">{pt.firstname} {pt.lastname}</span></p>
+      {/* Stats Cards */}
+      {schedule.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-primary-300 rounded-lg shadow-xl p-6 border border-primary-100 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <FaCalendarAlt className="text-blue-400 text-3xl" />
+            </div>
+            <h3 className="text-gray-400 text-sm font-medium mb-1">Total Sessions</h3>
+            <p className="text-white text-3xl font-bold">{scheduleStats.total}</p>
           </div>
 
-          {/* Date Picker */}
-          <div className="flex flex-col">
-            <label className="mb-2 text-gray-300 font-medium">Select date:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-accent transition"
-            />
+          <div className="bg-primary-300 rounded-lg shadow-xl p-6 border border-primary-100 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <FaCheckCircle className="text-green-400 text-3xl" />
+            </div>
+            <h3 className="text-gray-400 text-sm font-medium mb-1">Active</h3>
+            <p className="text-white text-3xl font-bold">{scheduleStats.active}</p>
           </div>
 
-          {/* Shift select */}
-          <div className="flex flex-col">
-            <label className="mb-2 text-gray-300 font-medium">Select training shift:</label>
-            <select
-              value={selectedShift}
-              onChange={(e) => setSelectedShift(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-accent transition"
-            >
-              <option value="" disabled>-- Select shift --</option>
-              {shifts.map((s) => (
-                <option key={s} value={s} className="bg-gray-900 text-white">
-                  {s}
-                </option>
-              ))}
-            </select>
+          <div className="bg-primary-300 rounded-lg shadow-xl p-6 border border-primary-100 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <FaHourglassHalf className="text-yellow-400 text-3xl" />
+            </div>
+            <h3 className="text-gray-400 text-sm font-medium mb-1">Pending</h3>
+            <p className="text-white text-3xl font-bold">{scheduleStats.pending}</p>
           </div>
 
-          <button
-            onClick={submitSchedule}
-            className="mt-4 px-6 py-2 bg-accent text-white font-semibold rounded-lg shadow hover:bg-accent/80 transition"
-          >
-            Create Schedule
-          </button>
+          <div className="bg-primary-300 rounded-lg shadow-xl p-6 border border-primary-100 hover:shadow-2xl transition-all duration-300">
+            <div className="flex items-center justify-between mb-2">
+              <FaTimes className="text-red-400 text-3xl" />
+            </div>
+            <h3 className="text-gray-400 text-sm font-medium mb-1">Rejected</h3>
+            <p className="text-white text-3xl font-bold">{scheduleStats.rejected}</p>
+          </div>
         </div>
       )}
 
-
-      {/* # Display schedule */}
-      <h1 className="text-3xl font-bold mb-4 text-white">Your Schedule</h1>
-      <p className="text-gray-300 mb-6">Training sessions & bookings</p>
-
-      {loading2 && <p className="text-gray-400">Loading schedule...</p>}
-
-      {!loading2 && schedule.length === 0 && (
-        <div className="bg-primary-300 p-6 rounded-xl border border-primary-200 text-center">
-          <p className="text-gray-300">No schedule found.</p>
+      {/* Create New Schedule Section */}
+      <div className="bg-primary-300 rounded-xl shadow-2xl p-8 border border-primary-100">
+        <div className="flex items-center gap-3 mb-6">
+          <FaDumbbell className="text-accent text-2xl" />
+          <h2 className="text-2xl font-bold text-white">Book New Training Session</h2>
         </div>
-      )}
 
-      {errorMsg2 && <p className="text-red-500 mb-2">{errorMsg2}</p>}
+        {errorMsg && (
+          <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-4">
+            {errorMsg}
+          </div>
+        )}
+        {successMsg && (
+          <div className="bg-green-500/10 border border-green-500 text-green-400 px-4 py-3 rounded-lg mb-4">
+            {successMsg}
+          </div>
+        )}
 
-      <div className="space-y-4">
-        {schedule.map((slot, index) => (
-
-          <div
-            key={index}
-            className="bg-primary-300 p-4 rounded-lg border border-primary-100 flex justify-between"
-          >
-            <div>
-              <div className="flex items-center space-x-2">
-                <FaCalendarAlt className="text-white" />
-                <span className="font-medium text-white">
-                  {slot.scheduleName.split(" ")[0]}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-2 mt-1 text-gray-300">
-                <FaClock />
-                <span>{slot.shift}</span>
-              </div>
-
-              {slot.userName && (
-                <p className="mt-2 text-sm text-white">
-                  Trainer: {slot.ptName}
+        {user && pt && (
+          <div className="space-y-6">
+            {/* User & Trainer Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-primary-200 p-4 rounded-lg border border-primary-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <FaUser className="text-accent" />
+                  <span className="text-gray-400 text-sm">Your Name</span>
+                </div>
+                <p className="text-white font-semibold text-lg">
+                  {user.firstname} {user.lastname}
                 </p>
-              )}
+              </div>
+
+              <div className="bg-primary-200 p-4 rounded-lg border border-primary-100">
+                <div className="flex items-center gap-2 mb-2">
+                  <FaUserTie className="text-accent" />
+                  <span className="text-gray-400 text-sm">Your Trainer</span>
+                </div>
+                <p className="text-white font-semibold text-lg">
+                  {pt.firstname} {pt.lastname}
+                </p>
+              </div>
             </div>
 
-            <div>
-              {slot.status === "pending" && (
-                <span className="px-3 py-1 bg-yellow-500 rounded-full text-sm">
-                  Pending
-                </span>
-              )}
-              {slot.status === "active" && (
-                <span className="px-3 py-1 bg-green-500 rounded-full text-sm flex items-center">
-                  <FaCheckCircle className="mr-1" /> Active
-                </span>
-              )}
-              {slot.status === "rejected" && (
-                <span className="px-3 py-1 bg-red-500 rounded-full text-sm">
-                  Rejected
-                </span>
-              )}
+            {/* Date and Shift Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Date Picker */}
+              <div className="flex flex-col">
+                <label className="mb-3 text-white font-semibold flex items-center gap-2">
+                  <FaCalendarAlt className="text-accent" />
+                  Select Date
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-4 py-3 rounded-lg bg-primary-200 text-white border-2 border-primary-100 focus:outline-none focus:border-accent transition-all"
+                />
+              </div>
+
+              {/* Shift Select */}
+              <div className="flex flex-col">
+                <label className="mb-3 text-white font-semibold flex items-center gap-2">
+                  <FaClock className="text-accent" />
+                  Select Time Slot
+                </label>
+                <select
+                  value={selectedShift}
+                  onChange={(e) => setSelectedShift(e.target.value)}
+                  className="px-4 py-3 rounded-lg bg-primary-200 text-white border-2 border-primary-100 focus:outline-none focus:border-accent transition-all"
+                >
+                  <option value="" disabled>-- Choose your time slot --</option>
+                  {shifts.map((s) => (
+                    <option key={s} value={s} className="bg-primary-200 text-white">
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            <button
+              onClick={submitSchedule}
+              className="w-full md:w-auto px-8 py-3 bg-accent hover:bg-accent/80 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+            >
+              <FaCheckCircle />
+              Book Training Session
+            </button>
           </div>
-        ))}
+        )}
+
+        {!user && loading && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-accent border-t-transparent"></div>
+            <p className="text-gray-400 mt-4">Loading your information...</p>
+          </div>
+        )}
+      </div>
+
+      {/* Schedule List */}
+      <div className="bg-primary-300 rounded-xl shadow-2xl p-8 border border-primary-100">
+        <div className="flex items-center gap-3 mb-6">
+          <FaCalendarAlt className="text-accent text-2xl" />
+          <h2 className="text-2xl font-bold text-white">Your Training Sessions</h2>
+        </div>
+
+        {loading2 && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-accent border-t-transparent"></div>
+            <p className="text-gray-400 mt-4">Loading your schedule...</p>
+          </div>
+        )}
+
+        {!loading2 && schedule.length === 0 && (
+          <div className="bg-primary-200 p-8 rounded-xl border-2 border-dashed border-primary-100 text-center">
+            <FaCalendarAlt className="text-gray-500 text-5xl mx-auto mb-4" />
+            <p className="text-gray-400 text-lg">No training sessions scheduled yet.</p>
+            <p className="text-gray-500 text-sm mt-2">Book your first session above to get started!</p>
+          </div>
+        )}
+
+        {errorMsg2 && (
+          <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-3 rounded-lg">
+            {errorMsg2}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {schedule.map((slot, index) => (
+            <div
+              key={index}
+              className="bg-primary-200 rounded-lg border border-primary-100 p-6 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+            >
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                {/* Left Side - Session Info */}
+                <div className="flex-1 space-y-3">
+                  {/* Date */}
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-accent/20 rounded-lg">
+                      <FaCalendarAlt className="text-accent text-xl" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-xs">Session Date</p>
+                      <p className="text-white font-bold text-lg">
+                        {slot.scheduleName.split(" ")[0]}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Time */}
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <FaClock className="text-blue-400 text-xl" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-xs">Time Slot</p>
+                      <p className="text-white font-semibold">{slot.shift}</p>
+                    </div>
+                  </div>
+
+                  {/* Trainer */}
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-500/20 rounded-lg">
+                      <FaUserTie className="text-purple-400 text-xl" />
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-xs">Trainer</p>
+                      <p className="text-white font-semibold">{slot.ptName}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side - Status Badge */}
+                <div className="flex items-center justify-center md:justify-end">
+                  <div className={`${getStatusColor(slot.status || 'pending')} px-6 py-3 rounded-xl shadow-lg flex items-center gap-2`}>
+                    {getStatusIcon(slot.status || 'pending')}
+                    <span className="text-white font-bold capitalize">
+                      {slot.status || 'Pending'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
