@@ -15,6 +15,7 @@ import cartRouter from "./routes/cartRouter";
 import orderRouter from "./routes/orderRouter";
 import aiRouter from "./routes/aiRouter";
 import cors from "cors";
+import path from "path";
 
 dotenv.config();
 
@@ -24,6 +25,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware parse body
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files for uploads
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // ✅ Thêm CORS
 app.use(cors({

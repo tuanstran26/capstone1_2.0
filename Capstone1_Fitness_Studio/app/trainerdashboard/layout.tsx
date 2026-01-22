@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from 'react';
-import { FaCalendarAlt, FaUserFriends, FaChartLine, FaBars, FaTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaUserFriends, FaChartLine, FaBars, FaTimes, FaUser } from 'react-icons/fa';
 import { useMembership } from '../../hooks/useMembership';
 
 export default function DashboardLayout({
@@ -60,6 +60,11 @@ export default function DashboardLayout({
               className="flex items-center p-3 rounded-md hover:bg-primary-100 text-gray-200 hover:text-accent transition-colors">
               <FaUserFriends className="mr-3" />
               <span>Clients</span>
+            </Link>
+            <Link href="/trainerdashboard/profile"
+              className="flex items-center p-3 rounded-md hover:bg-primary-100 text-gray-200 hover:text-accent transition-colors">
+              <FaUser className="mr-3" />
+              <span>My Profile</span>
             </Link>
           </nav>
 

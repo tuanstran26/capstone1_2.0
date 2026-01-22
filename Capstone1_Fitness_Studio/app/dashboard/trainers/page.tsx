@@ -174,6 +174,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { FaEnvelope, FaPhoneAlt, FaDumbbell, FaAward, FaUserTie, FaSearch, FaPaperPlane, FaCheckCircle } from "react-icons/fa";
 import { MdFitnessCenter } from "react-icons/md";
 
@@ -185,6 +186,7 @@ interface Trainer {
   phonenumber: string;
   ptSpecialization?: string;
   ptExperience?: string;
+  ptAvatar?: string;
 }
 
 export default function AssignTrainerPage() {
@@ -390,9 +392,21 @@ export default function AssignTrainerPage() {
                     <div className="flex flex-col lg:flex-row gap-6">
                       {/* Avatar Section */}
                       <div className="flex-shrink-0">
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-3xl font-bold text-white shadow-lg">
-                          {initials}
-                        </div>
+                        {pt.ptAvatar ? (
+                          <div className="w-24 h-24 rounded-full overflow-hidden shadow-lg border-2 border-accent/30">
+                            <Image
+                              src={`http://localhost:5000${pt.ptAvatar}`}
+                              alt={`${pt.firstname} ${pt.lastname}`}
+                              width={96}
+                              height={96}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center text-3xl font-bold text-white shadow-lg">
+                            {initials}
+                          </div>
+                        )}
                       </div>
 
                       {/* Info Section */}

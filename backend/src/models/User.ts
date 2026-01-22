@@ -27,6 +27,7 @@ export interface IUser extends Document {
   ptSpecialization: string | null;
   ptExperience: string| null;
   ptClients: mongoose.Types.ObjectId[];
+  ptAvatar: string | null;
 }
 
 const UserSchema: Schema = new Schema(
@@ -74,7 +75,8 @@ const UserSchema: Schema = new Schema(
         }
       ],
       default: []
-    }
+    },
+    ptAvatar: { type: String, default: null }
   },
   { timestamps: true }
 );
