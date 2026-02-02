@@ -19,38 +19,86 @@ export default function CheckoutSuccessPage() {
     
     const checkPaymentStatus = async () => {
       try {
-        // Get payment info from localStorage
+        // Get paymentId from URL params or localStorage
+        const paymentIdFromUrl = searchParams.get('paymentId')
         const pendingPayment = localStorage.getItem('pendingPayment')
-        if (!pendingPayment) {
+        
+        let paymentId = paymentIdFromUrl
+        let paymentData = null
+        
+        if (pendingPayment) {
+          paymentData = JSON.parse(pendingPayment)
+          if (!paymentId) {
+            paymentId = paymentData.paymentId
+          }
+        }
+        
+        if (!paymentId) {
+          // Check if it's cash payment (no online verification needed)
+          if (paymentData?.paymentMethod === 'cash') {
+            setPaymentInfo(paymentData)
+            setStatus('success')
+            startCountdown()
+            return
+          }
           setStatus('failed')
           return
         }
 
-        const paymentData = JSON.parse(pendingPayment)
         setPaymentInfo(paymentData)
 
-        // Check payment status with backend
-        const response = await fetch('http://localhost:5000/check-status', {
-          method: 'POST',
+        // Verify payment status with backend
+        const response = await fetch(`http://localhost:5000/payment/verify/${paymentId}`, {
+          method: 'GET',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ paymentId: paymentData.paymentId })
+          credentials: 'include',
         })
 
         const result = await response.json()
+        console.log('Payment verification result:', result)
 
-        if (result.success && result.payment.status === 'completed') {
+        if (result.success && result.status === 'completed') {
           setStatus('success')
           // Clear pending payment
           localStorage.removeItem('pendingPayment')
           
+          // Update user data in localStorage if membership was activated
+          if (result.membership) {
+            const userData = localStorage.getItem('user')
+            if (userData) {
+              const user = JSON.parse(userData)
+              user.membership = result.membership._id
+              localStorage.setItem('user', JSON.stringify(user))
+              
+              // Also store membership ID separately for dashboard
+              localStorage.setItem('membershipId', result.membership._id)
+              
+              // Store full membership data for dashboard display
+              localStorage.setItem('membershipData', JSON.stringify(result.membership))
+            }
+          }
+          
           // Start countdown for auto redirect
           startCountdown()
-        } else {
-          // Keep checking for a few more times
+        } else if (result.status === 'pending') {
+          // Still pending, check again in 3 seconds
           setTimeout(checkPaymentStatus, 3000)
+        } else {
+          setStatus('failed')
         }
       } catch (error) {
         console.error('Error checking payment status:', error)
+        // If can't connect to server, check if it's cash payment
+        const pendingPayment = localStorage.getItem('pendingPayment')
+        if (pendingPayment) {
+          const paymentData = JSON.parse(pendingPayment)
+          if (paymentData.paymentMethod === 'cash') {
+            setPaymentInfo(paymentData)
+            setStatus('success')
+            startCountdown()
+            return
+          }
+        }
         setStatus('failed')
       }
     }
@@ -65,7 +113,10 @@ export default function CheckoutSuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          router.push('/')
+          // Use setTimeout to avoid setState during render
+          setTimeout(() => {
+            router.push('/dashboard')
+          }, 0)
           return 0
         }
         return prev - 1

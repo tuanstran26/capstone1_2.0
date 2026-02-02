@@ -135,4 +135,26 @@ router.get(
   }
 );
 
+// Get current user profile
+router.get("/profile", ensureAuthenticated, async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any)?._id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("Get profile error:", err);
+    res.status(500).json({ message: "Error fetching profile", error: err });
+  }
+});
+
 export default router;

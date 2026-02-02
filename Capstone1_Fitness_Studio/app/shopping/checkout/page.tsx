@@ -94,6 +94,7 @@ export default function ShoppingCheckoutPage() {
 
     const handleCreateOrder = async () => {
         try {
+            setIsProcessing(true);
             const userData = localStorage.getItem("user");
             if (!userData) {
                 throw new Error("User not logged in");
@@ -101,19 +102,65 @@ export default function ShoppingCheckoutPage() {
 
             const parsedUser = JSON.parse(userData);
             const cartId = parsedUser.cartId;
-            const res = await fetch("http://localhost:5000/cart/create-order-from-cart", {
+
+            // ZaloPay payment
+            if (paymentMethod === 'credit') {
+                const res = await fetch("http://localhost:5000/payment/order/zalopay", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        cartId,
+                        personalInfo: {
+                            fullName: form.fullName,
+                            email: form.email,
+                            phone: form.phonenumber,
+                            address: form.address,
+                        },
+                        shippingFee: shipping,
+                    }),
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.message || "Create payment failed");
+                }
+
+                if (data.success && data.order_url) {
+                    // Store payment info for success page
+                    localStorage.setItem('pendingShoppingPayment', JSON.stringify({
+                        paymentId: data.paymentId,
+                        orderId: data.orderId,
+                        items: items,
+                        total: total,
+                    }));
+                    
+                    // Redirect to ZaloPay
+                    window.location.href = data.order_url;
+                    return;
+                } else {
+                    throw new Error(data.message || "Failed to create ZaloPay payment");
+                }
+            }
+
+            // COD payment
+            const res = await fetch("http://localhost:5000/payment/order/cod", {
                 method: "POST",
-                credentials: "include", // ⚠️ BẮT BUỘC cho ensureAuthenticated
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
                     cartId,
-                    fullname: form.fullName,
-                    email: form.email,
-                    address: form.address,
-                    phone: form.phonenumber,
-                    payingMethod: paymentMethod,
+                    personalInfo: {
+                        fullName: form.fullName,
+                        email: form.email,
+                        phone: form.phonenumber,
+                        address: form.address,
+                    },
                     shippingFee: shipping,
                 }),
             });
@@ -126,12 +173,14 @@ export default function ShoppingCheckoutPage() {
 
             console.log("Order created:", data.order);
 
-            // 👉 redirect sang trang success / payment
-            router.push(`/shopping/checkout/success?orderId=${data.order._id}`);
+            // Redirect to success page
+            router.push(`/shopping/checkout/success?orderId=${data.order._id}&type=cod`);
 
         } catch (error: any) {
             console.error("Create order error:", error);
-            alert(error.message || "Something went wrong");
+            setError(error.message || "Something went wrong");
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -426,22 +475,23 @@ export default function ShoppingCheckoutPage() {
                                     </p>
 
                                     {/* Payment Methods */}
-                                    <div className="grid grid-cols-2 gap-4 mb-8">
-                                        {/* Credit Card */}
+                                    <div className="grid grid-cols-3 gap-4 mb-8">
+                                        {/* ZaloPay */}
                                         <button
                                             type="button"
                                             onClick={() => setPaymentMethod('credit')}
-                                            className={`p-6 border-2 rounded-lg transition-all ${paymentMethod === 'credit'
-                                                ? 'border-accent bg-accent/5'
-                                                : 'border-gray-200 hover:border-gray-300'
+                                            className={`p-6 border-2 rounded-lg transition-all relative ${paymentMethod === 'credit'
+                                                ? 'border-blue-500 bg-blue-50'
+                                                : 'border-gray-200 hover:border-blue-300'
                                                 }`}
                                         >
-                                            <FaCreditCard className={`text-3xl mb-2 mx-auto ${paymentMethod === 'credit' ? 'text-accent' : 'text-gray-400'}`} />
-                                            <p className="font-medium">Credit Card</p>
-                                            <p className="text-xs text-gray-500">Visa, MasterCard</p>
+                                            <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">HOT</div>
+                                            <span className={`text-3xl mb-2 block ${paymentMethod === 'credit' ? 'text-blue-600' : 'text-gray-400'}`}>💳</span>
+                                            <p className="font-medium">ZaloPay</p>
+                                            <p className="text-xs text-gray-500">Fast & Secure</p>
                                         </button>
 
-                                        {/* Cash */}
+                                        {/* Credit Card */}
                                         <button
                                             type="button"
                                             onClick={() => setPaymentMethod('cod')}
@@ -453,6 +503,18 @@ export default function ShoppingCheckoutPage() {
                                             <span className={`text-3xl mb-2 block ${paymentMethod === 'cod' ? 'text-accent' : 'text-gray-400'}`}>💵</span>
                                             <p className="font-medium">Cash</p>
                                             <p className="text-xs text-gray-500">On Delivery</p>
+                                        </button>
+
+                                        {/* Bank Transfer */}
+                                        <button
+                                            type="button"
+                                            onClick={() => setPaymentMethod(null)}
+                                            className={`p-6 border-2 rounded-lg transition-all opacity-50 cursor-not-allowed`}
+                                            disabled
+                                        >
+                                            <span className="text-3xl mb-2 block text-gray-400">🏦</span>
+                                            <p className="font-medium text-gray-400">Bank</p>
+                                            <p className="text-xs text-gray-400">Coming Soon</p>
                                         </button>
                                     </div>
 
@@ -470,8 +532,12 @@ export default function ShoppingCheckoutPage() {
                                         <button
                                             type="button"
                                             onClick={handleCreateOrder}
-                                            disabled={isProcessing}
-                                            className="flex-1 bg-accent hover:bg-accent-hover text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={isProcessing || !paymentMethod}
+                                            className={`flex-1 font-bold py-4 px-6 rounded-lg transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                paymentMethod === 'credit' 
+                                                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                                                    : 'bg-accent hover:bg-accent-hover text-white hover:scale-105'
+                                            }`}
                                         >
                                             {isProcessing ? (
                                                 <span className="flex items-center justify-center gap-2">
@@ -479,10 +545,10 @@ export default function ShoppingCheckoutPage() {
                                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                                     </svg>
-                                                    Processing...
+                                                    {paymentMethod === 'credit' ? 'Redirecting to ZaloPay...' : 'Processing...'}
                                                 </span>
                                             ) : (
-                                                'Place Order'
+                                                paymentMethod === 'credit' ? '💳 Pay with ZaloPay' : 'Place Order'
                                             )}
                                         </button>
                                     </div>

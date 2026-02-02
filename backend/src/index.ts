@@ -14,6 +14,7 @@ import productRouter from "./routes/productRouter";
 import cartRouter from "./routes/cartRouter";
 import orderRouter from "./routes/orderRouter";
 import aiRouter from "./routes/aiRouter";
+import paymentRouter from "./routes/paymentRouter";
 import cors from "cors";
 import path from "path";
 
@@ -69,6 +70,12 @@ app.use("/product", productRouter);
 app.use("/cart", cartRouter);
 app.use("/order", orderRouter);
 app.use("/ai", aiRouter);
+app.use("/payment", paymentRouter);
+
+// Health check endpoint
+app.get("/test", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Server is running" });
+});
 
 // DB connect
 mongoose
