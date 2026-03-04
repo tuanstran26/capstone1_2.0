@@ -15,8 +15,11 @@ import cartRouter from "./routes/cartRouter";
 import orderRouter from "./routes/orderRouter";
 import aiRouter from "./routes/aiRouter";
 import paymentRouter from "./routes/paymentRouter";
+import notificationRouter from "./routes/notificationRouter";
 import cors from "cors";
 import path from "path";
+import http from "http";
+import { initializeSocket } from "./socket";
 
 dotenv.config();
 
@@ -71,11 +74,16 @@ app.use("/cart", cartRouter);
 app.use("/order", orderRouter);
 app.use("/ai", aiRouter);
 app.use("/payment", paymentRouter);
+app.use("/notification", notificationRouter);
 
 // Health check endpoint
 app.get("/test", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
+
+// Create HTTP server với Socket.io
+const httpServer = http.createServer(app);
+const io = initializeSocket(httpServer);
 
 // DB connect
 mongoose
@@ -83,6 +91,6 @@ mongoose
     || "mongodb+srv://haihuynhcit20:Xrikkk6xgRLcf3MS@fitnessstudio.qibuuw7.mongodb.net/")
   .then(() => {
     console.log("✅ MongoDB connected");
-    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+    httpServer.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err));

@@ -2,6 +2,7 @@ import Membership from "../models/Membership";
 import User from "../models/User";
 import { ensureAuthenticated } from "../middlewares/authMiddleware";
 import { Router, Request, Response, NextFunction } from "express";
+import { createNotification } from "./notificationRouter";
 const router = Router();
 
 // User chọn Membership sau khi login
@@ -40,6 +41,19 @@ router.post("/choose-membership", ensureAuthenticated, async (req: Request, res:
     // Gắn membership vào user
     user.membership = newMembership._id;
     await user.save();
+
+    // Send notification to user
+    try {
+      await createNotification(
+        userId,
+        "membership_created",
+        `${name} Membership Registered!`,
+        `You have registered for ${name} plan (${duration || 30} days). Please complete payment to activate.`,
+        { membershipId: newMembership._id, price }
+      );
+    } catch (notifError) {
+      console.error("Error sending notification:", notifError);
+    }
 
     res.status(201).json({
       message: "Membership created and assigned to user",

@@ -6,7 +6,10 @@ import {
   FiClock, 
   FiUser, 
   FiRefreshCw,
-  FiFilter
+  FiFilter,
+  FiCheck,
+  FiX,
+  FiAlertCircle
 } from "react-icons/fi";
 
 interface ScheduleSlot {
@@ -18,6 +21,7 @@ interface ScheduleSlot {
   ptName: string;
   userId: string;
   userName: string;
+  status?: "pending" | "active" | "rejected";
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +38,7 @@ export default function SchedulePage() {
   const [error, setError] = useState("");
   const [filterShift, setFilterShift] = useState<string>("all");
   const [filterDate, setFilterDate] = useState<string>("");
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSchedules();
@@ -58,12 +63,17 @@ export default function SchedulePage() {
         credentials: "include",
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch schedules");
-      }
-
       const data = await res.json();
-      setSchedule(data);
+
+      // Handle both success with empty array and 404 response
+      if (res.ok) {
+        setSchedule(data || []);
+      } else if (res.status === 404) {
+        // No schedules found - this is not an error, just empty state
+        setSchedule([]);
+      } else {
+        throw new Error(data.message || "Failed to fetch schedules");
+      }
     } catch (err: unknown) {
       console.error("Error fetching schedules:", err);
       if (err instanceof Error) {
@@ -71,8 +81,63 @@ export default function SchedulePage() {
       } else {
         setError("Error fetching schedules");
       }
+      setSchedule([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApprove = async (scheduleId: string) => {
+    try {
+      setProcessingId(scheduleId);
+      const res = await fetch(`http://localhost:5000/schedule/approve/${scheduleId}`, {
+        method: "PUT",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to approve");
+      }
+
+      // Update local state
+      setSchedule(prev => prev.map(s => 
+        s._id === scheduleId ? { ...s, status: "active" } : s
+      ));
+    } catch (err) {
+      console.error("Error approving schedule:", err);
+      alert("Failed to approve session");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleReject = async (scheduleId: string) => {
+    const reason = prompt("Optional: Enter reason for rejection");
+    
+    try {
+      setProcessingId(scheduleId);
+      const res = await fetch(`http://localhost:5000/schedule/reject/${scheduleId}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: reason || "" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to reject");
+      }
+
+      // Update local state
+      setSchedule(prev => prev.map(s => 
+        s._id === scheduleId ? { ...s, status: "rejected" } : s
+      ));
+    } catch (err) {
+      console.error("Error rejecting schedule:", err);
+      alert("Failed to reject session");
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -101,9 +166,9 @@ export default function SchedulePage() {
   // Stats
   const stats = {
     total: schedule.length,
-    morning: schedule.filter(s => s.shift === "Morning").length,
-    afternoon: schedule.filter(s => s.shift === "Afternoon").length,
-    evening: schedule.filter(s => s.shift === "Evening").length
+    pending: schedule.filter(s => s.status === "pending" || !s.status).length,
+    active: schedule.filter(s => s.status === "active").length,
+    rejected: schedule.filter(s => s.status === "rejected").length
   };
 
   if (loading) {
@@ -161,35 +226,35 @@ export default function SchedulePage() {
         <div className="bg-gradient-to-br from-yellow-500/20 to-yellow-500/5 rounded-2xl p-5 border border-yellow-500/20">
           <div className="flex items-center gap-3">
             <div className="bg-yellow-500/20 p-3 rounded-xl">
-              <FiClock className="w-6 h-6 text-yellow-400" />
+              <FiAlertCircle className="w-6 h-6 text-yellow-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Morning</p>
-              <p className="text-2xl font-bold text-white">{stats.morning}</p>
+              <p className="text-sm text-gray-400">Pending</p>
+              <p className="text-2xl font-bold text-white">{stats.pending}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-500/20 to-orange-500/5 rounded-2xl p-5 border border-orange-500/20">
+        <div className="bg-gradient-to-br from-green-500/20 to-green-500/5 rounded-2xl p-5 border border-green-500/20">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-500/20 p-3 rounded-xl">
-              <FiClock className="w-6 h-6 text-orange-400" />
+            <div className="bg-green-500/20 p-3 rounded-xl">
+              <FiCheck className="w-6 h-6 text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Afternoon</p>
-              <p className="text-2xl font-bold text-white">{stats.afternoon}</p>
+              <p className="text-sm text-gray-400">Approved</p>
+              <p className="text-2xl font-bold text-white">{stats.active}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-500/20 to-purple-500/5 rounded-2xl p-5 border border-purple-500/20">
+        <div className="bg-gradient-to-br from-red-500/20 to-red-500/5 rounded-2xl p-5 border border-red-500/20">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-500/20 p-3 rounded-xl">
-              <FiClock className="w-6 h-6 text-purple-400" />
+            <div className="bg-red-500/20 p-3 rounded-xl">
+              <FiX className="w-6 h-6 text-red-400" />
             </div>
             <div>
-              <p className="text-sm text-gray-400">Evening</p>
-              <p className="text-2xl font-bold text-white">{stats.evening}</p>
+              <p className="text-sm text-gray-400">Rejected</p>
+              <p className="text-2xl font-bold text-white">{stats.rejected}</p>
             </div>
           </div>
         </div>
@@ -275,21 +340,32 @@ export default function SchedulePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ml-11">
                 {groupedSchedules[date].map((slot) => {
                   const shiftConfig = SHIFT_CONFIG[slot.shift] || SHIFT_CONFIG["Morning"];
+                  const status = slot.status || "pending";
+                  const isProcessing = processingId === slot._id;
 
                   return (
                     <div
                       key={slot._id}
                       className="bg-primary-300 rounded-2xl p-5 border border-primary-100 hover:border-accent/30 transition-all"
                     >
-                      {/* Shift Badge */}
+                      {/* Status & Shift Badge */}
                       <div className="flex items-center justify-between mb-4">
                         <span className={`px-3 py-1 ${shiftConfig.bgColor} ${shiftConfig.color} text-sm font-medium rounded-full`}>
                           {slot.shift}
                         </span>
-                        <div className="flex items-center gap-1 text-gray-400 text-sm">
-                          <FiClock className="w-4 h-4" />
-                          {shiftConfig.time}
-                        </div>
+                        <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                          status === "active" ? "bg-green-500/20 text-green-400" :
+                          status === "rejected" ? "bg-red-500/20 text-red-400" :
+                          "bg-yellow-500/20 text-yellow-400"
+                        }`}>
+                          {status === "active" ? "Approved" : status === "rejected" ? "Rejected" : "Pending"}
+                        </span>
+                      </div>
+
+                      {/* Time */}
+                      <div className="flex items-center gap-1 text-gray-400 text-sm mb-3">
+                        <FiClock className="w-4 h-4" />
+                        {shiftConfig.time}
                       </div>
 
                       {/* Client Info */}
@@ -308,6 +384,36 @@ export default function SchedulePage() {
                         <p className="text-sm text-gray-400">Session</p>
                         <p className="text-white">{slot.scheduleName}</p>
                       </div>
+
+                      {/* Action Buttons - Only show for pending */}
+                      {status === "pending" && (
+                        <div className="mt-4 pt-4 border-t border-primary-100 flex gap-2">
+                          <button
+                            onClick={() => handleApprove(slot._id)}
+                            disabled={isProcessing}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-xl transition-colors disabled:opacity-50"
+                          >
+                            {isProcessing ? (
+                              <div className="w-4 h-4 border-2 border-green-400/30 border-t-green-400 rounded-full animate-spin" />
+                            ) : (
+                              <FiCheck className="w-4 h-4" />
+                            )}
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleReject(slot._id)}
+                            disabled={isProcessing}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl transition-colors disabled:opacity-50"
+                          >
+                            {isProcessing ? (
+                              <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin" />
+                            ) : (
+                              <FiX className="w-4 h-4" />
+                            )}
+                            Reject
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}

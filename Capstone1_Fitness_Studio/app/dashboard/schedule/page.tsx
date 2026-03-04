@@ -146,11 +146,11 @@ export default function SchedulePage() {
       if (!res.ok) {
         setErrorMsg(data.message || "Failed to create schedule.");
       } else {
-        setSuccessMsg("Schedule successfully created!");
+        setSuccessMsg(data.message || "Schedule request submitted! Awaiting trainer approval.");
         setErrorMsg("");
 
         // ✅ Alert success
-        alert("Schedule successfully created!");
+        alert("Schedule request submitted! Awaiting trainer approval.");
 
         // ✅ Refresh page
         fetchSchedules(user._id);
@@ -181,15 +181,21 @@ export default function SchedulePage() {
         credentials: "include",
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch schedules");
-      }
-
       const data = await res.json();
-      setSchedule(data);
+
+      // Handle both success with empty array and 404 response
+      if (res.ok) {
+        setSchedule(data || []);
+      } else if (res.status === 404) {
+        // No schedules found - this is not an error, just empty state
+        setSchedule([]);
+      } else {
+        throw new Error(data.message || "Failed to fetch schedules");
+      }
     } catch (err: any) {
       console.error("Error fetching schedules:", err);
       setErrorMsg2(err.message || "Error fetching schedules");
+      setSchedule([]);
     } finally {
       setLoading2(false);
     }

@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fi'
 import { SiTrainerroad } from "react-icons/si";
 import { FaShoppingBag } from "react-icons/fa";
+import NotificationBell from '@/components/NotificationBell';
 
 
 export default function AdminDashboardLayout({
@@ -64,6 +65,8 @@ export default function AdminDashboardLayout({
             <div className="flex items-center">
               <span className="text-xl font-bold text-white">Admin Portal</span>
             </div>
+            {/* Notification Bell for Admin */}
+            <NotificationBell />
           </div>
 
           {/* Navigation links */}

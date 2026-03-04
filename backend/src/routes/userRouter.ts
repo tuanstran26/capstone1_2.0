@@ -2,6 +2,7 @@ import Relationship from "../models/Relationship";
 import User from "../models/User";
 import { ensureAuthenticated } from "../middlewares/authMiddleware";
 import { Router, Request, Response, NextFunction } from "express";
+import { createNotification } from "./notificationRouter";
 const router = Router();
 
 
@@ -53,6 +54,20 @@ router.post("/assign-pt", async (req: Request, res: Response) => {
       userName,
       status: status ?? "pending", // default if FE không gửi
     });
+
+    // Send notification to PT
+    try {
+      await createNotification(
+        ptId,
+        "new_client",
+        "New Client Request",
+        `${userName} has requested you as their personal trainer.`,
+        { relationshipId: relationship._id, userId, userName }
+      );
+      console.log(`📢 Notification sent to PT ${ptId} about new client request from ${userName}`);
+    } catch (notifError) {
+      console.error("Error sending notification to PT:", notifError);
+    }
 
     res.status(201).json({
       message: "PT assignment created successfully",

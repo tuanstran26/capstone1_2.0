@@ -3,6 +3,7 @@ import "./globals.css";
 import { Geist, Geist_Mono } from 'next/font/google';
 import type { Metadata } from "next";
 import { CartProvider } from "@/lib/CartContext";
+import { NotificationProvider } from "@/lib/NotificationContext";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -43,7 +44,9 @@ export default function RootLayout({
         mx-auto bg-white`}
       >
         <CartProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </CartProvider>
       </body>
     </html>

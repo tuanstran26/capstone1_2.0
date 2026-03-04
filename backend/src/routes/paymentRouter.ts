@@ -7,8 +7,21 @@ import Order from "../models/Order";
 import User from "../models/User";
 import Cart from "../models/Cart";
 import { ensureAuthenticated } from "../middlewares/authMiddleware";
+import { createNotification } from "./notificationRouter";
 
 const router = express.Router();
+
+// Helper function to notify all admins
+async function notifyAllAdmins(type: any, title: string, message: string, data?: any) {
+  try {
+    const admins = await User.find({ role: "admin" }).select("_id");
+    for (const admin of admins) {
+      await createNotification((admin._id as any).toString(), type, title, message, data);
+    }
+  } catch (error) {
+    console.error("Error notifying admins:", error);
+  }
+}
 
 // ============================================
 // ZALOPAY SANDBOX CONFIGURATION
@@ -444,6 +457,27 @@ router.post("/zalopay/callback", async (req: Request, res: Response) => {
         await User.findByIdAndUpdate(payment.userId, {
           membership: embedData.membershipId,
         });
+
+        // Get user info for notification
+        const user = await User.findById(payment.userId);
+        const userName = user ? `${user.firstname} ${user.lastname}` : "Unknown";
+
+        // Notify user about successful payment
+        await createNotification(
+          payment.userId.toString(),
+          "payment_success",
+          "Payment Successful!",
+          `Your ${membership.name} membership has been activated. Enjoy your fitness journey!`,
+          { membershipId: membership._id, plan: membership.name }
+        );
+
+        // Notify all admins about new membership payment
+        await notifyAllAdmins(
+          "membership_created",
+          "New Membership Payment",
+          `${userName} purchased ${membership.name} membership (${payment.amount.toLocaleString()} VND)`,
+          { membershipId: membership._id, userId: payment.userId, amount: payment.amount }
+        );
       }
       console.log("Membership activated:", embedData.membershipId);
     }
@@ -464,6 +498,27 @@ router.post("/zalopay/callback", async (req: Request, res: Response) => {
             totalCartPrice: 0,
           });
         }
+
+        // Get user info for notification
+        const user = await User.findById(payment.userId);
+        const userName = user ? `${user.firstname} ${user.lastname}` : "Unknown";
+
+        // Notify user about successful order payment
+        await createNotification(
+          payment.userId.toString(),
+          "order_placed",
+          "Order Placed Successfully!",
+          `Your order #${embedData.orderId.toString().slice(-6).toUpperCase()} has been placed and is being processed.`,
+          { orderId: order._id }
+        );
+
+        // Notify all admins about new order
+        await notifyAllAdmins(
+          "order_placed",
+          "New Order Received",
+          `${userName} placed an order worth ${payment.amount.toLocaleString()} VND`,
+          { orderId: order._id, userId: payment.userId, amount: payment.amount }
+        );
       }
       console.log("Order payment completed:", embedData.orderId);
     }
@@ -605,6 +660,27 @@ router.get("/verify/:paymentId", ensureAuthenticated, async (req: Request, res: 
               });
               
               membershipData = membership;
+
+              // Get user info for notification
+              const user = await User.findById(payment.userId);
+              const userName = user ? `${user.firstname} ${user.lastname}` : "Unknown";
+
+              // Notify user about successful payment
+              await createNotification(
+                payment.userId.toString(),
+                "payment_success",
+                "Payment Successful!",
+                `Your ${membership.name} membership has been activated. Enjoy your fitness journey!`,
+                { membershipId: membership._id, plan: membership.name }
+              );
+
+              // Notify all admins about new membership payment
+              await notifyAllAdmins(
+                "membership_created",
+                "New Membership Payment",
+                `${userName} purchased ${membership.name} membership (${payment.amount.toLocaleString()} VND)`,
+                { membershipId: membership._id, userId: payment.userId, amount: payment.amount }
+              );
             } else if (membership) {
               membershipData = membership;
             }
@@ -629,6 +705,26 @@ router.get("/verify/:paymentId", ensureAuthenticated, async (req: Request, res: 
                   totalCartPrice: 0,
                 });
               }
+
+              // Get user info for notification
+              const userName = user ? `${user.firstname} ${user.lastname}` : "Unknown";
+
+              // Notify user about successful order payment
+              await createNotification(
+                payment.userId.toString(),
+                "order_placed",
+                "Order Placed Successfully!",
+                `Your order #${orderIdObj.toString().slice(-6).toUpperCase()} has been placed and is being processed.`,
+                { orderId: order._id }
+              );
+
+              // Notify all admins about new order
+              await notifyAllAdmins(
+                "order_placed",
+                "New Order Received",
+                `${userName} placed an order worth ${payment.amount.toLocaleString()} VND`,
+                { orderId: order._id, userId: payment.userId, amount: payment.amount }
+              );
             }
           }
 
