@@ -326,38 +326,43 @@ export default function ProductDetailPage() {
           </div>
         </motion.div>
         {/* ⭐ RECOMMENDED PRODUCTS */}
-        {recommendedProducts.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-xl font-bold mb-4">Recommended Products</h2>
+        <section className="mt-12 rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-orange-50 p-4 sm:p-6">
+          <div className="mb-6 flex items-end justify-between gap-3">
+            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
+              Recommended Products
+            </h2>
+            <span className="rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
+              For You
+            </span>
+          </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-              {recommendedProducts.map((item) => (
-                <a
-                  key={item.id}
-                  href={`/shopping/${item.id}`}
-                  className="border p-3 rounded hover:shadow"
-                >
+          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {recommendedProducts.slice(0, 10).map((item) => (
+              <Link
+                key={item.id}
+                href={`/shopping/${item.id}`}
+                className="group min-w-[170px] snap-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_8px_24px_-16px_rgba(15,23,42,0.45)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_30px_-18px_rgba(15,23,42,0.55)] sm:min-w-[190px]"
+              >
+                <div className="relative h-32 overflow-hidden sm:h-60">
                   <img
-                    src={item.image?.url}
-                    alt={item.image?.alt}
-                    className="w-full h-40 object-cover"
+                    src={item.image?.url || '/assets/placeholder-product.jpg'}
+                    alt={item.image?.alt || item.name}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-70" />
+                </div>
 
-                  <h3 className="mt-2 text-sm font-semibold">
+                <div className="p-3">
+                  <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-slate-900">
                     {item.name}
                   </h3>
 
-                  <p className="text-sm text-gray-500">
-                    ${item.price}
-                  </p>
-
-                </a>
-              ))}
-
-            </div>
+                  <p className="mt-2 text-sm font-bold text-rose-600">${item.price}</p>
+                </div>
+              </Link>
+            ))}
           </div>
-        )}
+        </section>
       </div>
     </div>
   );

@@ -37,9 +37,6 @@ const ZALOPAY_CONFIG = {
   refund_endpoint: "https://sb-openapi.zalopay.vn/v2/refund",
 };
 
-const ZALOPAY_REQUEST_TIMEOUT_MS = Number(process.env.ZALOPAY_TIMEOUT_MS || 20000);
-const ZALOPAY_MAX_RETRIES = Number(process.env.ZALOPAY_MAX_RETRIES || 2);
-
 // Membership plans configuration
 const MEMBERSHIP_PLANS = {
   standard: {
@@ -72,63 +69,6 @@ const MEMBERSHIP_PLANS = {
 // Helper function to generate ZaloPay MAC (HMAC SHA256)
 function generateZaloPayMAC(data: string, key: string): string {
   return crypto.createHmac("sha256", key).update(data).digest("hex");
-}
-
-function isRetryableZaloPayError(error: unknown): boolean {
-  if (!axios.isAxiosError(error)) {
-    return false;
-  }
-
-  const statusCode = error.response?.status;
-  const networkErrorCodes = ["ECONNABORTED", "ETIMEDOUT", "ECONNRESET", "EAI_AGAIN"];
-
-  if (typeof error.code === "string" && networkErrorCodes.includes(error.code)) {
-    return true;
-  }
-
-  if (!statusCode) {
-    return true;
-  }
-
-  return [502, 503, 504].includes(statusCode);
-}
-
-async function callZaloPayAPI(
-  url: string,
-  payload: Record<string, any>,
-  context: string
-) {
-  const formBody = new URLSearchParams();
-  for (const [key, value] of Object.entries(payload)) {
-    formBody.append(key, String(value));
-  }
-
-  const totalAttempts = ZALOPAY_MAX_RETRIES + 1;
-
-  for (let attempt = 1; attempt <= totalAttempts; attempt++) {
-    try {
-      return await axios.post(url, formBody.toString(), {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        timeout: ZALOPAY_REQUEST_TIMEOUT_MS,
-      });
-    } catch (error) {
-      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-      const code = axios.isAxiosError(error) ? error.code : undefined;
-
-      console.error(`[ZaloPay][${context}] attempt ${attempt}/${totalAttempts} failed`, {
-        status,
-        code,
-      });
-
-      if (!isRetryableZaloPayError(error) || attempt >= totalAttempts) {
-        throw error;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
-    }
-  }
-
-  throw new Error(`[ZaloPay][${context}] unexpected retry flow`);
 }
 
 // Helper function to generate app_trans_id
@@ -254,10 +194,12 @@ router.post(
       const mac = generateZaloPayMAC(data, ZALOPAY_CONFIG.key1);
 
       // Call ZaloPay API
-      const response = await callZaloPayAPI(
+      const response = await axios.post(
         ZALOPAY_CONFIG.endpoint,
         { ...orderData, mac },
-        "create-membership"
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }
       );
 
       console.log("ZaloPay response:", response.data);
@@ -418,10 +360,12 @@ router.post(
       const mac = generateZaloPayMAC(data, ZALOPAY_CONFIG.key1);
 
       // Call ZaloPay API
-      const response = await callZaloPayAPI(
+      const response = await axios.post(
         ZALOPAY_CONFIG.endpoint,
         { ...orderData, mac },
-        "create-order"
+        {
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }
       );
 
       console.log("ZaloPay order response:", response.data);
@@ -607,10 +551,12 @@ router.get("/zalopay/status/:appTransId", async (req: Request, res: Response) =>
     const data = `${postData.app_id}|${postData.app_trans_id}|${ZALOPAY_CONFIG.key1}`;
     const mac = generateZaloPayMAC(data, ZALOPAY_CONFIG.key1);
 
-    const response = await callZaloPayAPI(
+    const response = await axios.post(
       ZALOPAY_CONFIG.query_endpoint,
       { ...postData, mac },
-      "query-status"
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
     );
 
     res.json({
@@ -679,10 +625,12 @@ router.get("/verify/:paymentId", ensureAuthenticated, async (req: Request, res: 
       const mac = generateZaloPayMAC(data, ZALOPAY_CONFIG.key1);
 
       try {
-        const response = await callZaloPayAPI(
+        const response = await axios.post(
           ZALOPAY_CONFIG.query_endpoint,
           { ...postData, mac },
-          "verify-status"
+          {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          }
         );
 
         console.log("ZaloPay query response:", response.data);
