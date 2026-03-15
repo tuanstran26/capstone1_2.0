@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { MdMenu } from "react-icons/md"
 import { usePathname } from "next/navigation"
 import CartIcon from "./shopping/CartIcon"
+import NotificationBell from "./NotificationBell"
 
 // Định nghĩa kiểu User (đúng với BE trả về)
 interface User {
@@ -160,6 +161,9 @@ const Header = ({ hideScrollNav = false }: { hideScrollNav?: boolean }) => {
         <div className="flex items-center gap-4">
           {/* Cart Icon - visible for all users */}
           <CartIcon />
+
+          {/* Notification Bell - chỉ hiển thị khi đã đăng nhập */}
+          {user && <NotificationBell />}
 
           {/* Shopping Button - visible for all users */}
           <Link href="/shopping">

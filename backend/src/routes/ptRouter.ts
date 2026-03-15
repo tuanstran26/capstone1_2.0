@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { createNotification } from "./notificationRouter";
 
 // Configure multer for avatar upload
 const uploadDir = path.join(__dirname, "../../uploads/avatars");
@@ -103,6 +104,32 @@ router.patch(
 
             await Promise.all([pt.save(), user.save()]);
 
+            // Notify PT about new client
+            try {
+              await createNotification(
+                (ptId as any).toString(),
+                "new_client",
+                "New Client Assigned!",
+                `${user.firstname} ${user.lastname} has been assigned to you as a client.`,
+                { userId: userId, clientName: `${user.firstname} ${user.lastname}` }
+              );
+            } catch (notifError) {
+              console.error("Error sending new client notification:", notifError);
+            }
+
+            // Notify User about PT assignment
+            try {
+              await createNotification(
+                (userId as any).toString(),
+                "pt_assigned",
+                "Personal Trainer Assigned!",
+                `${pt.firstname} ${pt.lastname} is now your personal trainer.`,
+                { ptId: ptId, trainerName: `${pt.firstname} ${pt.lastname}` }
+              );
+            } catch (notifError) {
+              console.error("Error sending PT assigned notification:", notifError);
+            }
+
             return res.json({
                 message: "Assignment approved & PT/User updated",
                 relationship,
@@ -122,17 +149,30 @@ router.patch("/assign-pt/:id/reject", ensureAuthenticated, async (req: Request, 
     try {
         const { id } = req.params;
 
-        const updated = await Relationship.findByIdAndUpdate(
-            id,
-            { status: "rejected" },
-            { new: true }
-        );
-
-        if (!updated) {
+        const relationship = await Relationship.findById(id);
+        if (!relationship) {
             return res.status(404).json({ message: "Assignment not found" });
         }
 
-        res.json({ message: "Assignment rejected", relationship: updated });
+        relationship.status = "rejected";
+        await relationship.save();
+
+        // Notify user about rejection
+        try {
+          const pt = await User.findById(relationship.ptId);
+          await createNotification(
+            (relationship.userId as any).toString(),
+            "system",
+            "Request Declined",
+            `Trainer ${relationship.ptName || (pt ? `${pt.firstname} ${pt.lastname}` : 'PT')} has declined your training request.`,
+            { relationshipId: id, ptId: relationship.ptId }
+          );
+          console.log(`📢 Notification sent to user ${relationship.userId} about PT rejection`);
+        } catch (notifError) {
+          console.error("Error sending rejection notification:", notifError);
+        }
+
+        res.json({ message: "Assignment rejected", relationship });
     } catch (err) {
         res.status(500).json({ message: "Error updating assignment", error: err });
     }

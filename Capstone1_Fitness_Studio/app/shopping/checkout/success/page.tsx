@@ -293,15 +293,117 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCheckCircle, FaShoppingBag, FaListAlt } from 'react-icons/fa';
+import { FaCheckCircle, FaShoppingBag, FaListAlt, FaSpinner } from 'react-icons/fa';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [status, setStatus] = useState<'checking' | 'success' | 'failed'>('checking');
+  const [orderInfo, setOrderInfo] = useState<any>(null);
 
   const orderId = searchParams.get('orderId');
+  const paymentId = searchParams.get('paymentId');
+  const type = searchParams.get('type');
+
+  useEffect(() => {
+    const verifyPayment = async () => {
+      // If COD, show success immediately
+      if (type === 'cod' && orderId) {
+        setOrderInfo({ orderId });
+        setStatus('success');
+        return;
+      }
+
+      // If ZaloPay payment, verify with backend
+      if (paymentId) {
+        try {
+          const response = await fetch(`http://localhost:5000/payment/verify/${paymentId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+          });
+
+          const result = await response.json();
+          console.log('Payment verification:', result);
+
+          if (result.success && result.status === 'completed') {
+            setOrderInfo({
+              orderId: result.order?._id || orderId,
+              order: result.order,
+              payment: result.payment,
+            });
+            setStatus('success');
+            
+            // Clear pending payment from localStorage
+            localStorage.removeItem('pendingShoppingPayment');
+          } else if (result.status === 'pending') {
+            // Still pending, check again
+            setTimeout(verifyPayment, 3000);
+          } else {
+            setStatus('failed');
+          }
+        } catch (error) {
+          console.error('Verify payment error:', error);
+          // Try to get from localStorage
+          const pendingPayment = localStorage.getItem('pendingShoppingPayment');
+          if (pendingPayment) {
+            const data = JSON.parse(pendingPayment);
+            setOrderInfo({ orderId: data.orderId });
+            setStatus('success');
+          } else {
+            setStatus('failed');
+          }
+        }
+      } else if (orderId) {
+        // Just orderId, show success
+        setOrderInfo({ orderId });
+        setStatus('success');
+      } else {
+        setStatus('failed');
+      }
+    };
+
+    verifyPayment();
+  }, [orderId, paymentId, type]);
+
+  if (status === 'checking') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-5xl text-blue-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Verifying payment...</h2>
+          <p className="text-gray-600">Please wait while we confirm your payment.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white w-full max-w-lg rounded-2xl shadow-xl p-10 text-center"
+        >
+          <div className="w-20 h-20 mx-auto rounded-full bg-red-100 flex items-center justify-center mb-6">
+            <span className="text-5xl">❌</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Payment Failed</h1>
+          <p className="text-gray-600 mb-6">Something went wrong with your payment. Please try again.</p>
+          <button
+            onClick={() => router.push('/shopping/cart')}
+            className="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 rounded-lg transition"
+          >
+            Return to Cart
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50 flex items-center justify-center px-4">
@@ -328,14 +430,27 @@ export default function OrderSuccessPage() {
         </p>
 
         {/* Order ID */}
-        {orderId && (
+        {orderInfo?.orderId && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg py-3 px-4 mb-6">
             <p className="text-sm text-gray-500">Order ID</p>
             <p className="font-semibold text-accent break-all">
-              {orderId}
+              {orderInfo.orderId}
             </p>
           </div>
         )}
+
+        {/* Payment Method Badge */}
+        <div className="mb-6">
+          {type === 'cod' ? (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+              💵 Cash on Delivery
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+              💳 Paid with ZaloPay
+            </span>
+          )}
+        </div>
 
         {/* Info */}
         <p className="text-sm text-gray-500 mb-8">
@@ -353,7 +468,7 @@ export default function OrderSuccessPage() {
           </button>
 
           <button
-            onClick={() => router.push('/orders')}
+            onClick={() => router.push('/dashboard/orders')}
             className="flex-1 flex items-center justify-center gap-2 border border-gray-300 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-50 transition"
           >
             <FaListAlt />

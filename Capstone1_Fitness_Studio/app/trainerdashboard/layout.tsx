@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from 'react';
 import { FaCalendarAlt, FaUserFriends, FaChartLine, FaBars, FaTimes, FaUser } from 'react-icons/fa';
 import { useMembership } from '../../hooks/useMembership';
+import NotificationBell from '@/components/NotificationBell';
 
 export default function DashboardLayout({
   children,
@@ -31,9 +32,13 @@ export default function DashboardLayout({
         <div className="flex flex-col h-full">
           {/* Logo and user info */}
           <div className="p-4 border-b border-primary-100">
-            <Link href="/" className="flex items-center mb-4">
-              <span className="text-xl font-bold text-accent">Fitness Studio</span>
-            </Link>
+            <div className="flex items-center justify-between mb-4">
+              <Link href="/" className="flex items-center">
+                <span className="text-xl font-bold text-accent">Fitness Studio</span>
+              </Link>
+              {/* Notification Bell for PT */}
+              <NotificationBell />
+            </div>
 
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center font-bold">FS</div>

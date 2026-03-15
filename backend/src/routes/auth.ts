@@ -4,8 +4,24 @@ import passport from "../config/passport";
 import User, { IUser } from "../models/User"; // mình giả định bạn có IUser interface
 import Cart from "../models/Cart";
 import { isAdmin } from "../middlewares/authMiddleware";
+import { createNotification } from "./notificationRouter";
 
 const router = Router();
+
+// Helper function to notify all admins
+async function notifyAllAdmins(type: any, title: string, message: string, data?: any) {
+  try {
+    const admins = await User.find({ role: "admin" }).select("_id");
+    console.log(`📢 notifyAllAdmins: Found ${admins.length} admin(s)`);
+    for (const admin of admins) {
+      console.log(`📢 Sending notification to admin: ${admin._id}`);
+      await createNotification((admin._id as any).toString(), type, title, message, data);
+    }
+    console.log(`✅ Notifications sent to all admins`);
+  } catch (error) {
+    console.error("Error notifying admins:", error);
+  }
+}
 
 // // Register user
 // router.post("/register", async (req: Request, res: Response) => {
@@ -79,7 +95,19 @@ router.post("/register", async (req: Request, res: Response) => {
     newUser.cartId = newCart._id as any;
     await newUser.save();
 
-    // 6. Phản hồi
+    // 6. Notify all admins about new user registration (before response)
+    try {
+      await notifyAllAdmins(
+        "system",
+        "New User Registered",
+        `${firstname} ${lastname} (${email}) has registered.`,
+        { userId: newUser._id, email }
+      );
+    } catch (notifError) {
+      console.error("Error notifying admins about new user:", notifError);
+    }
+
+    // 7. Phản hồi
     res.status(201).json({
       message: "User registered successfully",
       user: newUser,

@@ -8,6 +8,7 @@ export interface ISchedule extends Document {
     ptName: string;
     userId: mongoose.Types.ObjectId;
     userName: string;
+    status: "pending" | "active" | "rejected";
     createdAt: Date;
 }
 
@@ -30,6 +31,11 @@ const ScheduleSchema = new Schema<ISchedule>(
         ptName: { type: String, required: true },
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         userName: { type: String, required: true },
+        status: {
+            type: String,
+            enum: ["pending", "active", "rejected"],
+            default: "pending",
+        },
     },
     { timestamps: { createdAt: true, updatedAt: false } }
 );

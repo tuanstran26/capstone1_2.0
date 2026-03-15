@@ -801,6 +801,14 @@ export default function CheckoutPage() {
     setPaymentError('');
 
     try {
+      // Get user from localStorage
+      const userData = localStorage.getItem('user');
+      if (!userData) {
+        setPaymentError('Please login first.');
+        return;
+      }
+      const user = JSON.parse(userData);
+
       if (paymentDetails.paymentMethod === 'zalopay') {
         // Check server connectivity first
         const serverOnline = await checkServerStatus();
@@ -809,28 +817,28 @@ export default function CheckoutPage() {
           return;
         }
 
-        // Prepare payment data
+        // Prepare payment data for ZaloPay
         const paymentData = {
-          email: personalInfo.email,
-          membershipPlan: selectedPlan.id,
-          amount: selectedPlan.price,
+          userId: user._id,
+          planId: selectedPlan.id,
           personalInfo: {
             fullName: personalInfo.fullName,
+            email: personalInfo.email,
             phone: personalInfo.phone,
             address: personalInfo.address,
-            emergencyContact: personalInfo.emergencyContact
           }
         };
 
         // Call backend API to get ZaloPay payment URL
         let res;
         try {
-          res = await fetch('http://localhost:5000/payment', {
+          res = await fetch('http://localhost:5000/payment/membership/zalopay', {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',
               'Accept': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify(paymentData),
             signal: AbortSignal.timeout(10000) // 10 second timeout
           });
@@ -870,7 +878,8 @@ export default function CheckoutPage() {
         if (data.success && data.order_url) {
           // Store payment info in localStorage for success page
           localStorage.setItem('pendingPayment', JSON.stringify({
-            paymentId: data.payment_id,
+            paymentId: data.paymentId,
+            membershipId: data.membershipId,
             plan: selectedPlan,
             personalInfo: personalInfo
           }));
@@ -881,8 +890,41 @@ export default function CheckoutPage() {
         } else {
           setPaymentError(data.message || 'Unable to get ZaloPay payment link.');
         }
+      } else if (paymentDetails.paymentMethod === 'cash') {
+        // Cash payment at gym
+        const paymentData = {
+          userId: user._id,
+          planId: selectedPlan.id,
+          personalInfo: {
+            fullName: personalInfo.fullName,
+            email: personalInfo.email,
+            phone: personalInfo.phone,
+            address: personalInfo.address,
+          }
+        };
+
+        const res = await fetch('http://localhost:5000/payment/membership/cash', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(paymentData),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('pendingPayment', JSON.stringify({
+            paymentId: data.payment._id,
+            membershipId: data.membership._id,
+            plan: selectedPlan,
+            personalInfo: personalInfo,
+            paymentMethod: 'cash'
+          }));
+          nextStep();
+        } else {
+          setPaymentError(data.message || 'Error creating membership.');
+        }
       } else {
-        // Simulate payment API call for other methods
+        // Simulate payment API call for other methods (card, banking)
         await new Promise(resolve => setTimeout(resolve, 2000));
         nextStep();
       }

@@ -46,13 +46,47 @@ export default function Dashboard() {
     // Lấy user từ localStorage
     const storedUser = localStorage.getItem('user');
     console.log('Stored user:', storedUser);
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
+    if (!storedUser) {
+      router.push('/login');
+      return;
+    }
 
+    const parsedUser = JSON.parse(storedUser);
+    setUser(parsedUser);
+
+    // Fetch fresh user data from server to get updated membership
+    const fetchUserData = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/user/profile', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (res.ok) {
+          const freshUserData = await res.json();
+          console.log('Fresh user data:', freshUserData);
+          
+          // Update localStorage with fresh data
+          localStorage.setItem('user', JSON.stringify(freshUserData));
+          setUser(freshUserData);
+          
+          // Update membershipId if exists
+          if (freshUserData.membership) {
+            localStorage.setItem('membershipId', freshUserData.membership);
+          }
+          
+          return freshUserData;
+        }
+      } catch (err) {
+        console.log('Could not fetch fresh user data, using localStorage');
+      }
+      return parsedUser;
+    };
+
+    fetchUserData().then((userData) => {
       // Lấy membershipId
-      let membershipId = parsedUser.membership;
-      let assignedPT = parsedUser.assignedPT;
+      let membershipId = userData.membership;
+      let assignedPT = userData.assignedPT;
       if (!membershipId) {
         membershipId = localStorage.getItem('membershipId') || null;
       }
@@ -149,8 +183,8 @@ export default function Dashboard() {
             setTrainer(null);
           });
       }
-    }
-  }, []);
+    });
+  }, [router]);
 
   // Tính số ngày còn lại
   const daysLeft = membership
@@ -273,6 +307,31 @@ export default function Dashboard() {
             <p className="text-gray-400 text-xs mt-1">
               {trainer ? `${trainer.firstname} ${trainer.lastname}` : 'Premium feature'}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* No Membership Banner */}
+      {!membership && (
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-2xl p-8 border border-orange-400">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-4 bg-white/20 rounded-full">
+                <FaCrown className="text-white text-4xl" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">No Active Membership</h2>
+                <p className="text-white/80">
+                  You don't have an active membership plan yet. Subscribe now to access all gym features!
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/choosemembership"
+              className="bg-white text-orange-600 hover:bg-orange-100 px-8 py-4 rounded-lg font-bold text-lg transition-all shadow-lg hover:shadow-xl whitespace-nowrap"
+            >
+              Choose a Plan
+            </Link>
           </div>
         </div>
       )}

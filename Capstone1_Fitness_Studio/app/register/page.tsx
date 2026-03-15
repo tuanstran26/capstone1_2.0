@@ -57,8 +57,26 @@ export default function SignUpPage() {
         throw new Error(data.error || "Failed to sign up");
       }
 
-      // 👉 Redirect to login page after successful registration
-      router.push("/login");
+      const data = await res.json();
+      
+      // Auto login after registration
+      const loginRes = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+        credentials: "include"
+      });
+
+      if (loginRes.ok) {
+        const loginData = await loginRes.json();
+        // Save user to localStorage
+        localStorage.setItem("user", JSON.stringify(loginData.user));
+        // Redirect to choose membership page for payment
+        router.push("/choosemembership");
+      } else {
+        // If auto-login fails, redirect to login page
+        router.push("/login");
+      }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
