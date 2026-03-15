@@ -16,18 +16,9 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const [activeTab, setActiveTab] = useState<'description' | 'features' | 'specifications'>('description');
+  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
 
-  // useEffect(() => {
-  //   const foundProduct = sportsProducts.find((p: Product) => p._id === params.id);
-  //   if (foundProduct) {
-  //     console.log('Found product:', foundProduct.name);
-  //     console.log('Product images:', foundProduct.images);
-  //     console.log('Product image (fallback):', foundProduct.images[0]);
-  //     setProduct(foundProduct);
-  //   } else {
-  //     router.push('/shopping');
-  //   }
-  // }, [params.id, router]);
+
 
 
   useEffect(() => {
@@ -48,6 +39,9 @@ export default function ProductDetailPage() {
         console.log("Fetched product:", data);
 
         setProduct(data);
+        if (!data.recommendationGenerated) {
+          fetchRecommendedProducts(data._id, data.category);
+        }
       } catch (error) {
         console.error("Fetch product error:", error);
       }
@@ -57,14 +51,31 @@ export default function ProductDetailPage() {
   }, [params.id])
 
 
-  // const handleAddToCart = () => {
-  //   if (!product) return;
-  //   for (let i = 0; i < quantity; i++) {
-  //     addToCart(product);
-  //   }
-  //   setJustAdded(true);
-  //   setTimeout(() => setJustAdded(false), 2000);
-  // };
+  async function fetchRecommendedProducts(id: string, category: string) {
+    try {
+      const res = await fetch(`http://localhost:5000/product/get-related-products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id: id,
+          category: category
+        })
+      });
+
+      if (!res.ok) {
+        console.error("Failed to fetch recommendations");
+        return;
+      }
+
+      const data = await res.json();
+      setRecommendedProducts(data);
+
+    } catch (error) {
+      console.error("Recommendation fetch error:", error);
+    }
+  }
 
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.max(1, Math.min(10, prev + delta)));
@@ -117,7 +128,6 @@ export default function ProductDetailPage() {
 
   const images = product.images?.map((img: any) => img.url) || [];
   console.log('Images to display:', images);
-  // const inCart = isInCart(product._id);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -315,18 +325,41 @@ export default function ProductDetailPage() {
 
           </div>
         </motion.div>
+        {/* ⭐ RECOMMENDED PRODUCTS */}
+        {recommendedProducts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-xl font-bold mb-4">Recommended Products</h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+              {recommendedProducts.map((item) => (
+                <a
+                  key={item.id}
+                  href={`/shopping/${item.id}`}
+                  className="border p-3 rounded hover:shadow"
+                >
+                  <img
+                    src={item.image?.url}
+                    alt={item.image?.alt}
+                    className="w-full h-40 object-cover"
+                  />
+
+                  <h3 className="mt-2 text-sm font-semibold">
+                    {item.name}
+                  </h3>
+
+                  <p className="text-sm text-gray-500">
+                    ${item.price}
+                  </p>
+
+                </a>
+              ))}
+
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// 'use client';
-// export default function ProductDetailTest({ params }: { params: { id: string } }) {
-//   return (
-//     <div className="p-10 text-3xl font-bold">
-//       Product Detail Page
-//       <br />
-//       <span className="text-blue-600">ID: {params.id}</span>
-//     </div>
-//   );
-// }

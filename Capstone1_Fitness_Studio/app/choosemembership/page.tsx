@@ -57,6 +57,8 @@ const ChooseMembershipPage = () => {
     const handleChoose = (plan: any) => {
         console.log('Selected plan:', plan)
         setSelectedPlan(plan)
+        router.push(`/paymentMethod?planId=${plan.id}`)
+
         setError(null) // Clear any previous errors
     }
 
@@ -207,7 +209,7 @@ const ChooseMembershipPage = () => {
             </div>
 
             {/* Confirm Box */}
-            {selectedPlan && (
+            {/* {selectedPlan && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
                         <h3 className="text-lg font-semibold mb-4">
@@ -231,7 +233,7 @@ const ChooseMembershipPage = () => {
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
         </section>
     )
 }

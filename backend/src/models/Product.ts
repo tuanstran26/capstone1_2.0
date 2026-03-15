@@ -23,6 +23,15 @@ export interface IProduct extends Document {
         count: number;
     };
 
+    // Recommendation system fields
+    bayesianScore: number;
+
+    recommendedProducts: mongoose.Types.ObjectId[];
+
+    recommendationGenerated: boolean;
+
+    recommendationGeneratedAt?: Date;
+
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -42,11 +51,13 @@ const ProductSchema: Schema = new Schema(
         description: { type: String, required: true },
 
         shortDescription: { type: String, required: true },
+
         price: {
             type: Number,
             required: true,
             min: 0,
         },
+
         brand: {
             type: String,
             required: true,
@@ -57,7 +68,12 @@ const ProductSchema: Schema = new Schema(
             required: true,
         },
 
-        inStock: { type: Number, required: true, min: 0 },
+        inStock: {
+            type: Number,
+            required: true,
+            min: 0,
+        },
+
         images: [
             {
                 url: { type: String, required: true },
@@ -74,6 +90,31 @@ const ProductSchema: Schema = new Schema(
         rating: {
             avg: { type: Number, default: 0 },
             count: { type: Number, default: 0 },
+        },
+
+        // Bayesian score used for statistical ranking
+        bayesianScore: {
+            type: Number,
+            default: 0,
+        },
+
+        // GPT recommended products
+        recommendedProducts: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "Product",
+            },
+        ],
+
+        // Flag to avoid generating recommendations multiple times
+        recommendationGenerated: {
+            type: Boolean,
+            default: false,
+        },
+
+        // Timestamp when recommendation was generated
+        recommendationGeneratedAt: {
+            type: Date,
         },
     },
     {

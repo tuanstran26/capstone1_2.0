@@ -5,6 +5,60 @@ import { ensureAuthenticated } from "../middlewares/authMiddleware";
 
 const router = express.Router();
 
+// router.post("/create", ensureAuthenticated, async (req: Request, res: Response) => {
+//     try {
+//         const {
+//             name,
+//             slug,
+//             description,
+//             shortDescription,
+//             price,
+//             brand,
+//             category,
+//             inStock,
+//             images,
+//             status,
+//             rating
+//         } = req.body;
+
+//         // Validate required fields
+//         if (!name || !slug || !description || !shortDescription || !brand || !category) {
+//             return res.status(400).json({
+//                 message: "Missing required fields",
+//             });
+//         }
+
+//         // Create Product Document
+//         const newProduct = new Product({
+//             name,
+//             slug,
+//             description,
+//             shortDescription,
+//             price: price || 0,
+//             brand,
+//             category,
+//             inStock: inStock || 0,
+//             images: images || [],
+//             status: status || "active",
+//             rating: rating || { avg: 0, count: 0 },
+//         });
+
+//         const savedProduct = await newProduct.save();
+
+//         return res.status(201).json({
+//             message: "Product created successfully",
+//             product: savedProduct,
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         return res.status(500).json({
+//             message: "Error creating product",
+//             error: err,
+//         });
+//     }
+// });
+
+
 router.post("/create", ensureAuthenticated, async (req: Request, res: Response) => {
     try {
         const {
@@ -28,7 +82,20 @@ router.post("/create", ensureAuthenticated, async (req: Request, res: Response) 
             });
         }
 
-        // Create Product Document
+        // Default rating
+        const avgRating = rating?.avg || 0;
+        const reviewCount = rating?.count || 0;
+
+        // Bayesian constants
+        const C = 4;   // global average rating
+        const m = 50;  // minimum review threshold
+
+        // Bayesian Score
+        const bayesianScore =
+            (reviewCount / (reviewCount + m)) * avgRating +
+            (m / (reviewCount + m)) * C;
+
+        // Create Product
         const newProduct = new Product({
             name,
             slug,
@@ -40,7 +107,16 @@ router.post("/create", ensureAuthenticated, async (req: Request, res: Response) 
             inStock: inStock || 0,
             images: images || [],
             status: status || "active",
-            rating: rating || { avg: 0, count: 0 },
+            rating: {
+                avg: avgRating,
+                count: reviewCount
+            },
+
+            // Recommendation fields
+            bayesianScore: bayesianScore,
+            recommendedProducts: [],
+            recommendationGenerated: false,
+            recommendationGeneratedAt: null
         });
 
         const savedProduct = await newProduct.save();
@@ -49,6 +125,7 @@ router.post("/create", ensureAuthenticated, async (req: Request, res: Response) 
             message: "Product created successfully",
             product: savedProduct,
         });
+
     } catch (err) {
         console.error(err);
         return res.status(500).json({
@@ -57,6 +134,44 @@ router.post("/create", ensureAuthenticated, async (req: Request, res: Response) 
         });
     }
 });
+
+
+router.post("/get-related-products", async (req, res) => {
+    try {
+        const { id, category } = req.body;
+
+        if (!id || !category) {
+            return res.status(400).json({
+                message: "id and category are required",
+            });
+        }
+
+        const products = await Product.find({
+            _id: { $ne: id },
+            category: category,
+            status: "active",
+        })
+            .sort({ bayesianScore: -1 })
+            .limit(20)
+            .select("name price images bayesianScore");
+
+        const formattedProducts = products.map((p) => ({
+            id: p._id,
+            name: p.name,
+            price: p.price,
+            bayesianScore: p.bayesianScore,
+            image: p.images?.[0] || null,
+        }));
+
+        res.json(formattedProducts);
+    } catch (error: any) {
+        res.status(500).json({
+            message: "Error fetching products",
+            error: error.message,
+        });
+    }
+});
+
 
 
 router.get("/get-product", async (req, res) => {
