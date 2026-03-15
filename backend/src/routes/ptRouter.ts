@@ -4,6 +4,46 @@ import { ensureAuthenticated } from "../middlewares/authMiddleware";
 import { Router, Request, Response, NextFunction } from "express";
 const router = Router();
 import mongoose from "mongoose";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+// Configure multer for avatar upload
+const uploadDir = path.join(__dirname, "../../uploads/avatars");
+
+// Create directory if it doesn't exist
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `avatar-${uniqueSuffix}${ext}`);
+  }
+});
+
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedTypes = /jpeg|jpg|png|gif|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+  
+  if (extname && mimetype) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files are allowed (jpeg, jpg, png, gif, webp)"));
+  }
+};
+
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+});
 
 
 //Approve PT assignment
@@ -187,6 +227,159 @@ router.get("/users", ensureAuthenticated, async (req: Request, res: Response) =>
     }
 });
 
+
+// Upload avatar for PT
+router.post(
+    "/upload-avatar/:id",
+    ensureAuthenticated,
+    upload.single("avatar"),
+    async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+
+            if (!req.file) {
+                return res.status(400).json({ message: "No file uploaded" });
+            }
+
+            // Find PT
+            const pt = await User.findById(id);
+
+            if (!pt) {
+                // Delete uploaded file if PT not found
+                fs.unlinkSync(req.file.path);
+                return res.status(404).json({ message: "PT not found" });
+            }
+
+            if (pt.role !== "pt") {
+                fs.unlinkSync(req.file.path);
+                return res.status(400).json({ message: "User is not a trainer" });
+            }
+
+            // Delete old avatar if exists
+            if (pt.ptAvatar) {
+                const oldAvatarPath = path.join(uploadDir, path.basename(pt.ptAvatar));
+                if (fs.existsSync(oldAvatarPath)) {
+                    fs.unlinkSync(oldAvatarPath);
+                }
+            }
+
+            // Update ptAvatar with the file path
+            const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+            pt.ptAvatar = avatarUrl;
+            await pt.save();
+
+            res.json({
+                message: "Avatar uploaded successfully",
+                avatarUrl,
+                pt: {
+                    _id: pt._id,
+                    firstname: pt.firstname,
+                    lastname: pt.lastname,
+                    ptAvatar: pt.ptAvatar
+                }
+            });
+        } catch (err) {
+            console.error("Error uploading avatar:", err);
+            // Clean up file on error
+            if (req.file) {
+                fs.unlinkSync(req.file.path);
+            }
+            res.status(500).json({
+                message: "Server error uploading avatar",
+                error: err,
+            });
+        }
+    }
+);
+
+
+// Update PT profile
+router.patch(
+    "/update-profile/:id",
+    ensureAuthenticated,
+    async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const { ptSpecialization, ptExperience } = req.body;
+
+            const pt = await User.findById(id);
+
+            if (!pt) {
+                return res.status(404).json({ message: "PT not found" });
+            }
+
+            if (pt.role !== "pt") {
+                return res.status(400).json({ message: "User is not a trainer" });
+            }
+
+            // Update only allowed fields
+            if (ptSpecialization !== undefined) {
+                pt.ptSpecialization = ptSpecialization;
+            }
+            if (ptExperience !== undefined) {
+                pt.ptExperience = ptExperience;
+            }
+
+            await pt.save();
+
+            res.json({
+                message: "Profile updated successfully",
+                pt: {
+                    _id: pt._id,
+                    firstname: pt.firstname,
+                    lastname: pt.lastname,
+                    ptSpecialization: pt.ptSpecialization,
+                    ptExperience: pt.ptExperience
+                }
+            });
+        } catch (err) {
+            console.error("Error updating profile:", err);
+            res.status(500).json({
+                message: "Server error updating profile",
+                error: err,
+            });
+        }
+    }
+);
+
+
+// Delete avatar for PT
+router.delete(
+    "/delete-avatar/:id",
+    ensureAuthenticated,
+    async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+
+            const pt = await User.findById(id);
+
+            if (!pt) {
+                return res.status(404).json({ message: "PT not found" });
+            }
+
+            if (pt.role !== "pt") {
+                return res.status(400).json({ message: "User is not a trainer" });
+            }
+
+            if (pt.ptAvatar) {
+                const avatarPath = path.join(uploadDir, path.basename(pt.ptAvatar));
+                if (fs.existsSync(avatarPath)) {
+                    fs.unlinkSync(avatarPath);
+                }
+                pt.ptAvatar = null;
+                await pt.save();
+            }
+
+            res.json({ message: "Avatar deleted successfully" });
+        } catch (err) {
+            console.error("Error deleting avatar:", err);
+            res.status(500).json({
+                message: "Server error deleting avatar",
+                error: err,
+            });
+        }
+    }
+);
 
 
 export default router;
