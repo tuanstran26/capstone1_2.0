@@ -80,13 +80,7 @@ const ChooseMembershipPage = () => {
     const handleChoose = (plan: any) => {
         console.log('Selected plan:', plan)
         setSelectedPlan(plan)
-<<<<<<< HEAD
-        router.push(`/paymentMethod?planId=${plan.id}`)
-
-        setError(null) // Clear any previous errors
-=======
         setError(null)
->>>>>>> main
     }
 
     const confirmChoose = async () => {
@@ -208,16 +202,6 @@ const ChooseMembershipPage = () => {
             </div>
 
             {/* Confirm Box */}
-<<<<<<< HEAD
-            {/* {selectedPlan && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
-                        <h3 className="text-lg font-semibold mb-4">
-                            Confirm selection of {selectedPlan.name} plan (
-                            {selectedPlan.price}/{selectedPlan.duration})?
-                        </h3>
-                        <div className="flex justify-center gap-4">
-=======
             {selectedPlan && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
@@ -249,7 +233,6 @@ const ChooseMembershipPage = () => {
                         </div>
 
                         <div className="flex gap-4">
->>>>>>> main
                             <button
                                 onClick={() => setSelectedPlan(null)}
                                 className="flex-1 px-4 py-3 bg-gray-200 rounded-lg hover:bg-gray-300 font-medium"
@@ -267,7 +250,7 @@ const ChooseMembershipPage = () => {
                         </div>
                     </div>
                 </div>
-            )} */}
+            )}
         </section>
     )
 }
