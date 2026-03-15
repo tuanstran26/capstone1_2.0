@@ -26,12 +26,9 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@types/crypto-js": "^4.2.2",
     "axios": "^1.13.6",
-=======
     "@types/multer": "^2.0.0",
->>>>>>> main
     "bcrypt": "^5.1.1",
     "connect-mongo": "^5.1.0",
     "cookie-parser": "^1.4.7",
