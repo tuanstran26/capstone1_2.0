@@ -10,6 +10,7 @@ import CartSummary from '@/components/shopping/CartSummary';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { FiArrowLeft, FiShoppingBag } from 'react-icons/fi';
+import {formatVNDToUSD} from '@/components/FormatPrice';
 
 export default function CartPage() {
   const router = useRouter();
@@ -502,8 +503,8 @@ export default function CartPage() {
 
                             {/* Price */}
                             <div className="text-right">
-                              <div className="text-sm text-gray-500">${item.price.toFixed(2)} each</div>
-                              <div className="text-xl font-bold text-accent">${subtotal.toFixed(2)}</div>
+                              <div className="text-sm text-gray-500">{formatVNDToUSD(item.price)} each</div>
+                              <div className="text-xl font-bold text-accent">{formatVNDToUSD(subtotal)}</div>
                             </div>
 
                           </div>
@@ -543,7 +544,7 @@ export default function CartPage() {
               {/* 👉 Summary lấy từ state summary */}
               <div className="flex justify-between items-center mb-4 text-gray-600">
                 <span>Items ({summary.totalItems})</span>
-                <span className="font-medium">${summary.subtotal.toFixed(2)}</span>
+                <span className="font-medium">{formatVNDToUSD(summary.subtotal)}</span>
               </div>
 
               <div className="flex justify-between items-center mb-4 text-gray-600">
@@ -556,7 +557,7 @@ export default function CartPage() {
                 <span className="font-medium">
                   {summary.shipping === 0
                     ? "$0.00"
-                    : `$${summary.shipping.toFixed(2)}`}
+                    : `$${formatVNDToUSD(summary.shipping)}`}
                 </span>
               </div>
 
@@ -582,7 +583,7 @@ export default function CartPage() {
 
               <div className="flex justify-between items-center mb-4 text-gray-600">
                 <span>Tax (8%)</span>
-                <span className="font-medium">${summary.tax.toFixed(2)}</span>
+                <span className="font-medium">{formatVNDToUSD(summary.tax)}</span>
               </div>
 
               <div className="border-t my-4"></div>
@@ -590,7 +591,7 @@ export default function CartPage() {
               <div className="flex justify-between items-center mb-6">
                 <span className="text-lg font-semibold text-gray-900">Total</span>
                 <span className="text-2xl font-bold text-accent">
-                  ${summary.total.toFixed(2)}
+                  {formatVNDToUSD(summary.total)}
                 </span>
               </div>
 

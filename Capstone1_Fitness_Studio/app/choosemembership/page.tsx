@@ -161,11 +161,11 @@ const ChooseMembershipPage = () => {
                                     <h3 className="text-xl font-bold mb-1">{plan.name}</h3>
                                     <div className="flex flex-col items-center justify-center mb-2">
                                         <span className="text-3xl font-bold">
-                                            {formatPrice(plan.price)}
+                                            {formatPriceUSD(plan.price)}
                                         </span>
-                                        <span className={`text-sm ${plan.isPopular ? 'text-blue-100' : 'text-gray-500'}`}>
+                                        {/* <span className={`text-sm ${plan.isPopular ? 'text-blue-100' : 'text-gray-500'}`}>
                                             (~{formatPriceUSD(plan.price)})
-                                        </span>
+                                        </span> */}
                                     </div>
                                     <span className={`text-sm ${plan.isPopular ? 'text-blue-100' : 'text-gray-500'}`}>
                                         /{plan.duration} days

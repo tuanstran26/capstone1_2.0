@@ -2,6 +2,7 @@
 import express, { Request, Response } from "express";
 import Product from "../models/Product"; // đường dẫn schema của bạn
 import { ensureAuthenticated } from "../middlewares/authMiddleware";
+import axios from "axios";
 
 const router = express.Router();
 
@@ -173,6 +174,63 @@ router.post("/get-related-products", async (req, res) => {
 });
 
 
+router.post("/save-recommendations", async (req, res) => {
+    try {
+        const { productId, recommendations } = req.body;
+
+        // ✅ Validate
+        if (!productId || !Array.isArray(recommendations)) {
+            return res.status(400).json({
+                message: "productId and recommendations are required",
+            });
+        }
+
+        if (recommendations.length === 0) {
+            return res.status(400).json({
+                message: "recommendations cannot be empty",
+            });
+        }
+
+        // ✅ Format lại data cho đúng schema
+        const formatted = recommendations.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            bayesianScore: p.bayesianScore,
+            image: p.image || null,
+        }));
+
+        // ✅ Update vào product
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            {
+                recommendedProducts: formatted,
+                recommendationGenerated: true,
+                recommendationGeneratedAt: new Date(),
+            },
+            { new: true }
+        );
+
+        if (!updatedProduct) {
+            return res.status(404).json({
+                message: "Product not found",
+            });
+        }
+
+        res.json({
+            message: "Recommendations saved successfully",
+            data: updatedProduct.recommendedProducts,
+        });
+
+    } catch (error: any) {
+        res.status(500).json({
+            message: "Error saving recommendations",
+            error: error.message,
+        });
+    }
+});
+
+
 
 router.get("/get-product", async (req, res) => {
     try {
@@ -331,6 +389,61 @@ router.delete("/delete/:id", async (req, res) => {
 
     } catch (error: any) {
         res.status(500).json({ message: error.message });
+    }
+});
+
+const PYTHON_API = "http://localhost:6999/recommend-products";
+
+router.post("/generate-all-recommendations", async (req, res) => {
+    try {
+        // 🔥 1. Lấy product chưa generate
+        const products = await Product.find({
+            recommendationGenerated: false,
+            status: "active",
+        }).select("_id name category");
+
+        console.log(`Found ${products.length} products`);
+
+        let success = 0;
+        let failed = 0;
+
+        // 🔥 2. Loop gọi Python API
+        for (const product of products) {
+            try {
+                console.log("Processing:", product._id);
+
+                await axios.post(
+                    PYTHON_API,
+                    {
+                        id: product._id,
+                        name: product.name,
+                        category: product.category,
+                    },
+                    {
+                        timeout: 15000, // tránh treo
+                    }
+                );
+
+                success++;
+
+            } catch (err: any) {
+                console.error("Error:", product._id, err.message);
+                failed++;
+            }
+        }
+
+        res.json({
+            message: "Done calling Python API",
+            total: products.length,
+            success,
+            failed,
+        });
+
+    } catch (error: any) {
+        res.status(500).json({
+            message: "Batch error",
+            error: error.message,
+        });
     }
 });
 

@@ -26,7 +26,7 @@ export interface IProduct extends Document {
     // Recommendation system fields
     bayesianScore: number;
 
-    recommendedProducts: mongoose.Types.ObjectId[];
+    recommendedProducts: IRecommendedProduct[];
 
     recommendationGenerated: boolean;
 
@@ -34,6 +34,17 @@ export interface IProduct extends Document {
 
     createdAt?: Date;
     updatedAt?: Date;
+}
+
+export interface IRecommendedProduct {
+    id: mongoose.Types.ObjectId;
+    name: string;
+    price: number;
+    bayesianScore: number;
+    image: {
+        url: string;
+        alt: string;
+    } | null;
 }
 
 const ProductSchema: Schema = new Schema(
@@ -98,11 +109,28 @@ const ProductSchema: Schema = new Schema(
             default: 0,
         },
 
-        // GPT recommended products
         recommendedProducts: [
             {
-                type: Schema.Types.ObjectId,
-                ref: "Product",
+                id: {
+                    type: Schema.Types.ObjectId,
+                    required: true,
+                },
+                name: {
+                    type: String,
+                    required: true,
+                },
+                price: {
+                    type: Number,
+                    required: true,
+                },
+                bayesianScore: {
+                    type: Number,
+                    required: true,
+                },
+                image: {
+                    url: { type: String },
+                    alt: { type: String },
+                },
             },
         ],
 

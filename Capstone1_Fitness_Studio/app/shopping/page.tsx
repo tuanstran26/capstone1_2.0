@@ -61,6 +61,8 @@ export default function ShoppingPage() {
   }, []);
 
 
+ 
+
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products.filter((product) => {

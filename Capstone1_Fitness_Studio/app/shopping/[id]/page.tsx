@@ -7,6 +7,7 @@ import { useCart } from '@/lib/CartContext';
 import ImageGallery from '@/components/shopping/ImageGallery';
 import { Product } from '@/components/shopping/ProductCard';
 import Link from 'next/link';
+import { formatVNDToUSD } from '@/components/FormatPrice';
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -41,6 +42,8 @@ export default function ProductDetailPage() {
         setProduct(data);
         if (!data.recommendationGenerated) {
           fetchRecommendedProducts(data._id, data.category);
+        } else {
+          setRecommendedProducts(data.recommendedProducts);
         }
       } catch (error) {
         console.error("Fetch product error:", error);
@@ -189,10 +192,10 @@ export default function ProductDetailPage() {
             <div className="py-4 border-y border-gray-200">
               <div className="flex items-baseline gap-4">
                 <span className="text-5xl font-bold text-accent">
-                  {product.price} VND
+                  {formatVNDToUSD(product.price)}
                 </span>
                 <span className="text-gray-500 line-through text-xl">
-                  {(product.price * 1.3)}
+                  {(formatVNDToUSD(product.price * 1.3))}
                 </span>
                 <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">
                   Save 23%
@@ -357,7 +360,7 @@ export default function ProductDetailPage() {
                     {item.name}
                   </h3>
 
-                  <p className="mt-2 text-sm font-bold text-rose-600">${item.price}</p>
+                  <p className="mt-2 text-sm font-bold text-rose-600">{formatVNDToUSD(item.price)}</p>
                 </div>
               </Link>
             ))}

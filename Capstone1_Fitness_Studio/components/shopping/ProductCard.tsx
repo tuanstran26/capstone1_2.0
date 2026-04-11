@@ -6,6 +6,7 @@ import { fadeIn } from '@/lib/variants';
 import { useCart } from '@/lib/CartContext';
 import { useState } from 'react';
 import { FiCheck, FiShoppingCart } from 'react-icons/fi';
+import { formatVNDToUSD } from '../FormatPrice';
 
 export interface Product {
   _id: string;
@@ -73,6 +74,8 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
       alert('Failed to add to cart. Please try again.');
     }
   };
+
+  
 
   // List View Layout
   if (viewMode === 'list') {
@@ -147,7 +150,7 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
               <div>
                 <p className="text-2xl  text-accent">
-                  ${product.price}
+                  {formatVNDToUSD(product.price)}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">Free shipping</p>
               </div>
@@ -214,11 +217,11 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
               <span className="text-white font-bold text-lg bg-red-500 px-4 py-2 rounded-full">Out of Stock</span>
             </div>
           )}
-          {product.inStock && (
+          {/* {product.inStock && (
             <div className="absolute top-4 right-4 bg-gradient-to-r from-accent to-rose-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
               New
             </div>
-          )}
+          )} */}
         </div>
       </Link>
 
@@ -261,7 +264,7 @@ const ProductCard = ({ product, index, viewMode = 'grid' }: ProductCardProps) =>
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
           <div>
             <p className="text-2xl font-bold bg-gradient-to-r from-accent to-rose-600 bg-clip-text text-transparent">
-              {product.price}
+              {formatVNDToUSD(product.price)}
             </p>
           </div>
           <button

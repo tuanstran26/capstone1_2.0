@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaArrowLeft, FaUser, FaCreditCard, FaCheck, FaShoppingBag, FaLock, FaShieldAlt, FaTruck } from 'react-icons/fa';
 import Link from 'next/link';
+import {formatVNDToUSD} from '@/components/FormatPrice';
 
 // Checkout Steps
 
@@ -506,7 +507,7 @@ export default function ShoppingCheckoutPage() {
                                         </button>
 
                                         {/* Bank Transfer */}
-                                        <button
+                                        {/* <button
                                             type="button"
                                             onClick={() => setPaymentMethod(null)}
                                             className={`p-6 border-2 rounded-lg transition-all opacity-50 cursor-not-allowed`}
@@ -515,7 +516,7 @@ export default function ShoppingCheckoutPage() {
                                             <span className="text-3xl mb-2 block text-gray-400">🏦</span>
                                             <p className="font-medium text-gray-400">Bank</p>
                                             <p className="text-xs text-gray-400">Coming Soon</p>
-                                        </button>
+                                        </button> */}
                                     </div>
 
                                     {/* Action Buttons */}
@@ -603,7 +604,7 @@ export default function ShoppingCheckoutPage() {
                                                     </span>
 
                                                     <span className="text-sm font-semibold text-accent">
-                                                        ${item.totalPrice}
+                                                        ${formatVNDToUSD(item.price * item.quantity)}
                                                     </span>
                                                 </div>
                                             </div>
@@ -618,7 +619,7 @@ export default function ShoppingCheckoutPage() {
                                 {/* Subtotal */}
                                 <div className="flex justify-between items-center text-gray-600">
                                     <span>Subtotal</span>
-                                    <span className="font-medium">${subtotal}</span>
+                                    <span className="font-medium">{formatVNDToUSD(subtotal)}</span>
                                 </div>
 
                                 {/* Shipping */}
@@ -632,7 +633,7 @@ export default function ShoppingCheckoutPage() {
                                         )}
                                     </span>
                                     <span className="font-medium">
-                                        {shipping === 0 ? '$0.00' : `$${shipping}`}
+                                        {shipping === 0 ? '$0.00' : `$${formatVNDToUSD(shipping)}`}
                                     </span>
                                 </div>
 
@@ -642,7 +643,7 @@ export default function ShoppingCheckoutPage() {
                                         <div className="flex items-center gap-2 mb-2">
                                             <FaTruck className="text-blue-600" />
                                             <p className="text-xs text-blue-700 font-medium">
-                                                Add ${(1000000 - subtotal)} more for FREE shipping!
+                                                Add {formatVNDToUSD(1000000 - subtotal)} more for FREE shipping!
                                             </p>
                                         </div>
                                         <div className="w-full bg-blue-200 rounded-full h-2">
@@ -657,7 +658,7 @@ export default function ShoppingCheckoutPage() {
                                 {/* Tax */}
                                 <div className="flex justify-between items-center text-gray-600">
                                     <span>Tax (8%)</span>
-                                    <span className="font-medium">${tax}</span>
+                                    <span className="font-medium">{formatVNDToUSD(tax)}</span>
                                 </div>
                             </div>
 
@@ -668,7 +669,7 @@ export default function ShoppingCheckoutPage() {
                             <div className="flex justify-between items-center mb-6">
                                 <span className="text-xl font-bold text-gray-900">Total</span>
                                 <span className="text-2xl font-bold text-accent">
-                                    ${total}
+                                    {formatVNDToUSD(total)}
                                 </span>
                             </div>
 
