@@ -1,0 +1,465 @@
+steps:
+  ###############################################
+  # CLASSIFY BEHAVIOR
+  ###############################################
+  - id: classify_behavior
+    type: llm
+    name: "User intention routing and standardize user request"
+    properties:
+      model: gpt-4o
+      prompt: |
+        Question: "{{user_question}}"
+        
+        Normalize the above question before proceeding with behavior classification. If in the question have words like advanced, oldbie, intense level,... make it becomes professional; newbie, starter, new,... make it becomes beginner 
+        
+        Choose one of these behavior:
+          `exercise_advice`: The user wants to ask about specific exercises, muscle groups, workout methods, form, techniques, training tips, etc. Recognition: Contains keywords such as "chest workout," "back exercises," "correct form," "how to do push-ups," "is this the right way to train abs," etc. Does not require creating a workout plan.
+        
+          `generate_timetable`: The user wants to create a personalized workout schedule. Recognition: The question expresses a desire such as "workout schedule," "help me make a plan," "suggest a schedule," "what should I train this week," or mentions specific goals like "lose weight," "build muscle," "train 5 days/week," etc.
+        
+          `simple_qna`: A simple question that does not require document lookup or generating a plan. Examples: "What is BMI?", "Is it good to work out in the morning?", "Is creatine harmful?", etc.
+        
+          `smalltalk`: A casual or social conversation not related to business operations. Recognition: No specific action required; light, friendly chat with no processing needed.
+        
+          `product_consult`: The user wants to search, browse, or filter products based on criteria such as brand, category, price range, or budget.  Recognition: The question contains keywords such as "find products," "show me," "I want all products from," "under 500000," "cheap," "price range," "brand," "category," etc.  Does not require selecting a specific product or making a purchase.
+          
+          `create_schedule`: The user wants to book, create, or schedule a training session with a personal trainer. Recognition: - The question expresses an intention to book or arrange a training time. - Mentions a date, time, shift, or availability. - Mentions booking, scheduling, reserving, or setting up a session. - May include trainer (PT) information or imply training with a coach. Examples: - "I want to book a training session tomorrow morning." - "Schedule a workout with my PT at 7 to 9." - "Help me book a PT session on Friday." - "I want to train with a personal trainer this evening." - "Can you create a schedule for me on 2025-12-27 from 15:00 to 17:00?" 
+          
+        
+          Examples: "Hello, how are you today?", "Are you doing well?"
+        Return result with JSON format:
+          {
+            "behavior": "...",
+            "final_question": "..."
+          }
+    output:
+      behavior_json: "{{llm_output}}"
+    next: parse_behavior_json
+
+  - id: parse_behavior_json
+    type: function
+    function: parse_json_fields
+    input:
+      json_string: "{{behavior_json}}"
+      fields: [ "behavior", "final_question" ]
+    output:
+      behavior: "{{result.behavior}}"
+      final_question: "{{result.final_question}}"
+    next: route_behavior
+
+
+  ###############################################
+  # EXERCISE ADVICE
+  ###############################################
+  - id: route_behavior
+    type: switch
+    input: "{{behavior}}"
+    cases:
+      exercise_advice: find_key_word
+      generate_timetable: create_timetable
+      simple_qna: answer_qna
+      smalltalk: handle_smalltalk
+      product_consult: product_consulting
+      create_schedule: extract_schedule_datetime
+
+
+  - id: find_key_word
+    type: llm
+    name: "Identity User Request Key word"
+    properties:
+      model: gpt-4o
+      prompt: |
+        You are an internal AI assistant for a fitness application.
+        
+        Your task is to generate a **Qdrant filter** from the user's natural language fitness question, based on the provided metadata fields.
+        
+        ---
+        ### User question: "{{final_question}}"
+        
+        ### Processing Instructions:
+        
+        1. Analyze **user_question** to determine filter conditions, specifically:
+           - Exact match values (match)
+           - Approximate match values (like) only if exact match is not possible
+           - Multiple possible values (in)
+        
+        2. Only use the available metadata fields:
+           - muscle_group (chest, legs, back, shoulders, arms, abs)
+           - experience_level (beginner, professional): if user request is
+        
+        3. If the question does not contain any information that matches these metadata fields, return exactly `"No"`.
+        
+        4. If there are matching fields, output **only one valid Qdrant JSON filter** without any explanations or comments.
+        
+        5. And lowercase first letter of each value
+        
+        6. If the value of muscle_group is only Triceps or Biceps, please make it TricepsAndBiceps
+        ---
+        ### Metadata fields: {
+                              "muscle_group",
+                              "experience_level"
+                             }
+        
+        ### TODAY: {{today_date}}
+        
+        ---
+        ### OUTPUT FORMAT EXAMPLE:
+        For user_question: "Give me professional chest workouts"
+        ```json
+        {
+          "must": [
+            { "key": "muscle_group", "match": { "value": "chest" } },
+            { "key": "experience_level", "match": { "value": "professional" } }
+          ]
+        }
+
+    output:
+      metadata_filter: "{{llm_output}}"
+    next: vector_search_qdrant
+
+
+  - id: vector_search_qdrant
+    type: vector_search
+    name: "Vector search Qdrant local"
+    properties:
+      qdrant_url: "http://localhost:6333"
+      collection_name: "official_general_documents"
+      search_value: "final_question"
+      metadata_filter: "metadata_filter"
+      chunk_require: 50
+      return_fields:
+        - "text"
+    output:
+      qdrant_answer: "{{vector_result}}"
+    next: qdrant_nl
+
+  - id: qdrant_nl
+    type: llm
+    name: "Identity User Request Key word"
+    properties:
+      model: gpt-4o
+      prompt: |
+        You are a friendly and knowledgeable AI fitness assistant.
+        
+        Your task is to answer the user's question using only the information provided in the search results from the fitness database.  
+        The search results come from a Qdrant vector search and may include metadata such as muscle_group and experience_level, as well as detailed exercise descriptions.
+        
+        ---
+        User question: {{final_question}}
+        
+        Search results: {{qdrant_answer}}
+        
+        ---
+        ### Instructions for answering:
+        1. If the search results contain relevant exercises or advice, write a natural, clear, and well-structured answer in English.
+           - Mention the exercise name(s) and the target muscle group(s).
+           - If multiple results are relevant, organize them in a list or steps.
+           - Provide practical details such as:
+             - Muscles targeted
+             - Step-by-step guide
+             - Common mistakes to avoid
+             - Safety tips
+        2. Adapt your language to match the user's experience level if it is available in the metadata (beginner, intermediate, advanced).
+        3. If the search results are empty or irrelevant, politely say you could not find relevant exercises and ask for clarification.
+        4. Do not invent exercises or information that are not in the search results.
+        5. Keep the tone encouraging and professional.
+
+    output:
+      final_answer: "{{llm_output}}"
+    next: end
+
+
+
+
+
+  ###############################################
+  # SIMPLE QNA
+  ###############################################
+
+  - id: answer_qna
+    type: llm
+    name: "Answer User Request"
+    properties:
+      model: gpt-4o
+      prompt: |
+        You are an AI fitness assistant to help user understand their problem about fitness, work out and gym.  
+         Your task is to answer user question:  
+         - Searching documents in a knowledge base    
+         - Answer user question in natural language  
+         - Dont return formula
+        
+         Question: "{{final_question}}"
+         ---
+         Definition:
+         - simple_qna: A direct, fact-based, conversational question about fitness, nutrition, health, or exercise concepts.  
+           Examples:
+             - "What is BMI?"
+             - "Is creatine harmful?"
+             - "Is it good to work out in the morning?"
+             - "What is the difference between HIIT and cardio?"
+        
+         ---
+         Return answer in natural language
+      data: "final_reply"
+
+    output:
+      final_answer: "{{llm_output}}"
+    next: end
+
+    ###############################################
+    # SMALL TALK
+    ###############################################
+
+  - id: handle_smalltalk
+    type: llm
+    properties:
+      model: gpt-4o
+      prompt: |
+        User question "{{final_question}}"
+        Response short and friendly.
+      data: "final_reply"
+
+    output:
+      final_answer: "{{llm_output}}"
+    next: end
+
+
+
+
+
+
+
+  ###############################################
+  # PRODUCT CONSULT
+  ###############################################
+
+  - id: product_consulting
+    type: llm
+    name: "Answer User Request"
+    properties:
+      model: gpt-4o
+      prompt: |
+        You are an AI assistant responsible for extracting API request body parameters from a user's shopping-related question.
+        
+        User question:
+          "{{final_question}}" 
+        
+        Your task:
+          - Analyze the user's question.
+          - Extract relevant filter values.
+          - Return ONLY a valid JSON object.
+          - Do NOT explain.
+          - Do NOT add extra text.
+          - Do NOT use markdown.
+          - Do NOT change the JSON structure.
+          - If a value is not mentioned or not applicable, return an empty string "".
+        
+        JSON schema (MUST be returned exactly in this structure):
+        
+          {
+            "category": "",
+            "brand": "",
+            "minPrice": "",
+            "maxPrice": ""
+          }
+        
+        Extraction rules:
+          - category: define product category only from this list and uppercase first letter [Clothing, Footwear, Equipment].
+          - brand: define product brand only from this list and uppercase first letter [Gymshark, Technogym, Adidas].
+          - minPrice: minimum budget if the user mentions a minimum price or "from X".
+          - maxPrice: maximum budget if the user mentions a budget, limit, or "I have X money".
+          - Prices must be returned as plain numbers (no currency symbols, no text).
+          - If the user question does not say anything about brand category or money, simply just return as the structure above with "" value.
+
+    output:
+      product_filter_body: "{{llm_output}}"
+    next: fetch_products
+
+  - id: fetch_products
+    type: fetch_api
+    name: "Fetch products"
+    properties:
+      method: POST
+      endpoint: "http://localhost:5000/ai/products/filter"
+      body_from_context: "product_filter_body"
+      headers:
+        Content-Type: application/json
+      result_name: product_list
+
+    next: product_consult_final_answer
+
+
+  - id: product_consult_final_answer
+    type: llm
+    properties:
+      model: gpt-4o
+      prompt: |
+        You are an AI shopping assistant.
+        Your task:
+        - Answer the user's question using the product data provided.
+        - Base your response on the user's intent (buying, browsing, or asking for advice).
+        - Only recommend products that appear in the product list.
+        - Do NOT invent products or prices.
+        - Do NOT mention APIs, databases, or internal systems.
+        - Respond in natural, friendly language.        
+          ---        
+        User question:
+        "{{final_question}}"        
+        ---
+        Available products:
+        {{product_list}}
+        
+        Guidelines:
+        - If the user wants to buy or browse products:
+          - Present a clear list of matching products.
+          - Include product name, brand, category, and price.
+        - If the user asks for advice or recommendations:
+          - Briefly explain why the products are suitable.
+          - Match the user's budget, needs, or preferences.
+        - If multiple products are available:
+          - Show them as a short list.
+        - If no suitable product is found:
+          - Politely inform the user and suggest adjusting criteria.
+        - Keep the response concise and helpful.
+        - Do NOT use markdown or bullet symbols excessively.
+      
+      
+
+      data: "final_reply"
+
+    output:
+      final_answer: "{{llm_output}}"
+    next: end
+
+
+
+
+  ###############################################
+  # Create schedule
+  ###############################################
+
+
+  - id: extract_schedule_datetime
+    type: llm
+    name: "Extract schedule date and shift"
+    properties:
+      model: gpt-4o
+      prompt: |
+        You are an AI assistant responsible for extracting schedule information from a user's message.
+
+        Your task:
+        - Identify the desired schedule date and training shift from the user's request.
+        - Return ONLY a valid JSON object.
+        - Do NOT explain.
+        - Do NOT add extra text.
+        - Do NOT use markdown.
+        - Do NOT change the JSON structure.
+
+        Allowed shifts (MUST choose exactly one if mentioned):
+        - "07:00 to 09:00"
+        - "09:00 to 11:00"
+        - "13:00 to 15:00"
+        - "15:00 to 17:00"
+        - "17:00 to 19:00"
+
+        Rules:
+        - scheduleDate must be in dd/mm/yyyy format.
+        - If the user mentions a time range, map it to the closest matching allowed shift.
+        - If date or shift is not clearly mentioned, return an empty string for that field.
+        - Do NOT invent values.
+        - If the user does not mention shift and date, pick tomorrow and shift in the list
+  
+
+        JSON format (return exactly this):
+        {
+          "scheduleDate": "",
+          "shift": ""
+        }
+
+        User question:
+        "{{final_question}}"
+        
+        Today is {{today_date}}
+
+      data: "schedule_body"
+
+    output:
+      schedule_body: "{{llm_output}}"
+    next: merge_schedule_body
+
+
+  - id: merge_schedule_body
+    type: body_merge
+    properties:
+      sources:
+        - schedule_body
+        - user_pt_info
+      result_name: merged_body
+    next: fetch_create_schedule
+
+
+
+  - id: fetch_create_schedule
+    type: fetch_api
+    name: "Create schedule via API"
+    properties:
+      method: POST
+      endpoint: "http://localhost:5000/ai/create"
+      headers:
+        Content-Type: application/json
+
+      body_from_context: "merged_body"
+
+    output:
+      api_result: "{{api_response}}"
+
+    next: schedule_final_answer
+
+
+  - id: schedule_final_answer
+    type: llm
+    name: "Schedule creation final answer"
+    properties:
+      model: gpt-4o
+      prompt: |
+        You are an AI fitness assistant.
+
+        Your task:
+        - Generate a final response to the user based on their request and the API result.
+        - Use the API response to determine whether the schedule was created successfully or failed.
+        - Respond in natural, friendly language.
+        - Do NOT mention APIs, databases, backend, or internal systems.
+        - Do NOT explain technical details.
+        - Do NOT use markdown.
+        - Keep the answer concise and clear.
+
+        ---
+        User question:
+        "{{final_question}}"
+        ---
+        Schedule API result:
+        {{api_result}}
+
+        Guidelines:
+        - If the schedule was created successfully:
+          - Confirm the booking.
+          - Mention the date and shift clearly.
+        - If the schedule already exists:
+          - Politely inform the user that the slot is unavailable.
+          - Suggest choosing a different time or date.
+        - If there was an error:
+          - Apologize briefly.
+          - Ask the user to try again or choose another option.
+        - Do NOT invent information not present in the API result.
+
+      data: "final_reply"
+    output:
+      final_answer: "{{llm_output}}"
+    next: end
+
+
+
+
+  - id: end
+    type: end
+    name: "Kết thúc"
